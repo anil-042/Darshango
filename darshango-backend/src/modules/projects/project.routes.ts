@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as projectController from './project.controller';
-import { protect, authorize } from '../../middleware/authMiddleware';
+import { protect } from '../../middleware/authMiddleware';
+import { authorize } from '../../middleware/roleMiddleware';
 import { validate, projectSchema } from '../../utils/validators';
 
 const router = Router();

@@ -13,7 +13,7 @@ import {
   Eye
 } from 'lucide-react';
 import { api } from '../services/api';
-import { Project } from '../types';
+import { Project, Agency } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -61,9 +61,10 @@ interface ProjectFormProps {
   onSubmit: (e: React.FormEvent) => void;
   submitLabel: string;
   component?: string;
+  agencies: Agency[];
 }
 
-const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component }: ProjectFormProps) => {
+const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component, agencies }: ProjectFormProps) => {
   const [availableDistricts, setAvailableDistricts] = useState<string[]>([]);
 
   useEffect(() => {
@@ -123,6 +124,66 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component }
               <SelectItem value="Delayed">Delayed</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Implementing Agency</label>
+          <Select
+            value={formData.implementingAgencyId}
+            onValueChange={(val) => setFormData({ ...formData, implementingAgencyId: val })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Agency" />
+            </SelectTrigger>
+            <SelectContent>
+              {agencies.map((agency) => (
+                <SelectItem key={agency.id} value={agency.id}>
+                  {agency.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Executing Agency</label>
+          <Select
+            value={formData.executingAgencyId}
+            onValueChange={(val) => setFormData({ ...formData, executingAgencyId: val })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Agency" />
+            </SelectTrigger>
+            <SelectContent>
+              {agencies.map((agency) => (
+                <SelectItem key={agency.id} value={agency.id}>
+                  {agency.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Start Date</label>
+          <Input
+            type="date"
+            value={formData.startDate}
+            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">End Date</label>
+          <Input
+            type="date"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            required
+          />
         </div>
       </div>
 
@@ -196,6 +257,7 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component }
 
 export function ProjectManagement({ component }: ProjectManagementProps) {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [agencies, setAgencies] = useState<Agency[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -234,11 +296,25 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
     district: '',
     status: 'In Progress',
     estimatedCost: 0,
-    progress: 0
+    progress: 0,
+    implementingAgencyId: '',
+    executingAgencyId: '',
+    startDate: '',
+    endDate: ''
   });
+
+  const fetchAgencies = async () => {
+    try {
+      const data = await api.agencies.getAll();
+      setAgencies(data);
+    } catch (error) {
+      console.error('Failed to fetch agencies', error);
+    }
+  };
 
   useEffect(() => {
     fetchProjects();
+    fetchAgencies();
   }, []);
 
   const fetchProjects = async () => {
@@ -349,6 +425,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
                 onSubmit={handleCreate}
                 submitLabel="Create Project"
                 component={component}
+                agencies={agencies}
               />
             </SheetContent>
           </Sheet>
@@ -366,6 +443,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
             onSubmit={handleUpdate}
             submitLabel="Update Project"
             component={component}
+            agencies={agencies}
           />
         </SheetContent>
       </Sheet>

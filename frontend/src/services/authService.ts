@@ -1,82 +1,62 @@
-import { User, UserRole } from '../types';
-import { initialUsers } from './mockData';
-
-// Helper to simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import axiosInstance from './axiosInstance';
+import { User } from '../types';
 
 const STORAGE_KEY = 'auth_user_v2';
-const USERS_KEY = 'users_v2';
+const TOKEN_KEY = 'auth_token';
 
 export const authService = {
     /**
      * Login with email and password
      */
     login: async (email: string, password: string): Promise<User> => {
-        await delay(800);
+        try {
+            const response = await axiosInstance.post('/auth/login', { email, password });
+            const { token, user } = response.data;
 
-        // Load users from storage or use initial
-        const storedUsers = localStorage.getItem(USERS_KEY);
-        const users: User[] = storedUsers ? JSON.parse(storedUsers) : initialUsers;
-
-        const user = users.find(u => u.email === email && u.password === password);
-
-        if (!user) {
-            throw new Error('Invalid credentials');
+            if (token) {
+                localStorage.setItem(TOKEN_KEY, token);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+            }
+            return user;
+        } catch (error: any) {
+            console.error('Auth Service Login Error:', error);
+            if (error.response) {
+                // Server responded with a status code outside 2xx
+                throw new Error(`Server Error: ${error.response.status} - ${error.response.data?.message || JSON.stringify(error.response.data)}`);
+            } else if (error.request) {
+                // Request was made but no response received
+                throw new Error('Network Error: No response from server. Check if backend is running on port 5001.');
+            } else {
+                // Something happened in setting up the request
+                throw new Error(`Request Error: ${error.message}`);
+            }
         }
-
-        if (user.status !== 'Active') {
-            throw new Error('Account is not active');
-        }
-
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        return user;
     },
 
     /**
      * Register a new user
      */
-    register: async (userData: Omit<User, 'id' | 'status'>): Promise<User> => {
-        await delay(1000);
-
-        const storedUsers = localStorage.getItem(USERS_KEY);
-        const users: User[] = storedUsers ? JSON.parse(storedUsers) : initialUsers;
-
-        if (users.some(u => u.email === userData.email)) {
-            throw new Error('Email already exists');
+    register: async (userData: any): Promise<User> => {
+        try {
+            const response = await axiosInstance.post('/auth/signup', userData);
+            return response.data.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Registration failed');
         }
-
-        const newUser: User = {
-            ...userData,
-            id: `USR-${Date.now()}`,
-            status: 'Pending', // Default to pending for approval
-            password: userData.password // In real app, this would be hashed
-        };
-
-        // Auto-approve Viewer role for demo purposes
-        if (newUser.role === 'Viewer') {
-            newUser.status = 'Active';
-        }
-
-        users.push(newUser);
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
-
-        return newUser;
     },
 
     /**
-     * Verify OTP (Mock)
+     * Verify OTP (Mock - keep as mock for now if backend doesn't support it)
      */
     verifyOTP: async (email: string, otp: string): Promise<boolean> => {
-        await delay(500);
-        return otp === '123456'; // Mock OTP
+        return otp === '123456';
     },
 
     /**
-     * Login with Google (Mock)
+     * Login with Google (Mock - keep as mock for now)
      */
     googleLogin: async (): Promise<User> => {
-        await delay(1000);
-        // Return a mock user
+        // TODO: Implement real Google Login
         const user: User = {
             id: 'USR-GOOGLE',
             name: 'Google User',
@@ -84,7 +64,7 @@ export const authService = {
             role: 'Viewer',
             status: 'Active'
         };
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
         return user;
     },
 
@@ -92,16 +72,16 @@ export const authService = {
      * Logout
      */
     logout: async (): Promise<void> => {
-        await delay(300);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(STORAGE_KEY);
         sessionStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_KEY); // Clear legacy local storage if exists
     },
 
     /**
-     * Get current user from session
+     * Get current user from storage
      */
     getCurrentUser: (): User | null => {
-        const stored = sessionStorage.getItem(STORAGE_KEY);
+        const stored = localStorage.getItem(STORAGE_KEY);
         return stored ? JSON.parse(stored) : null;
     }
 };

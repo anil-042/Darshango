@@ -3,13 +3,12 @@ import * as userService from './user.service';
 import { successResponse, errorResponse } from '../../utils/response';
 
 export const getUsers = async (req: Request, res: Response) => {
-    // FRONTEND → BACKEND FLOW
-    // UserManagement.tsx → GET /users → user.controller.getUsers → user.service.getAllUsers
     try {
-        const users = await userService.getAllUsers();
-        successResponse(res, users);
+        const filters = req.query;
+        const users = await userService.getAllUsers(filters);
+        successResponse(res, users, 'Users fetched successfully');
     } catch (error: any) {
-        errorResponse(res, error.message);
+        errorResponse(res, error.message, 500);
     }
 };
 

@@ -4,10 +4,8 @@ import { protect } from '../../middleware/authMiddleware';
 
 const router = Router();
 
-router.use(protect);
-
-router.get('/dashboard-stats', reportController.getDashboardStats);
-router.get('/state-performance', reportController.getStatePerformance);
-router.get('/component-utilization', reportController.getComponentUtilization);
+router.get('/projects', protect, reportController.getProjectReport);
+router.get('/funds', protect, reportController.getFundReport);
+router.get('/ucs', protect, reportController.getUCReport);
 
 export default router;

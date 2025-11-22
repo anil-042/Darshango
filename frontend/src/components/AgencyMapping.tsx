@@ -9,7 +9,9 @@ import {
   Plus,
   MoreVertical,
   Pencil,
-  Trash2
+  Trash2,
+  Globe,
+  FileText
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Agency } from '../types';
@@ -50,6 +52,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog';
+import { Textarea } from './ui/textarea';
 
 import { locationData } from '../data/locations';
 
@@ -81,21 +84,52 @@ const AgencyForm = ({ formData, setFormData, onSubmit, submitLabel }: AgencyForm
         />
       </div>
       <div className="space-y-2">
-        <label className="text-sm font-medium">Type</label>
+        <label className="text-sm font-medium">Category</label>
         <Select
-          value={formData.type}
-          onValueChange={(val: any) => setFormData({ ...formData, type: val })}
+          value={formData.category}
+          onValueChange={(val: any) => setFormData({ ...formData, category: val })}
         >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="PWD">PWD</SelectItem>
-            <SelectItem value="NGO">NGO</SelectItem>
+            <SelectItem value="StateDept">State Dept</SelectItem>
             <SelectItem value="PRI">PRI</SelectItem>
-            <SelectItem value="State Dept">State Dept</SelectItem>
+            <SelectItem value="ULB">ULB</SelectItem>
+            <SelectItem value="DevelopmentAuthority">Development Authority</SelectItem>
+            <SelectItem value="HousingBoard">Housing Board</SelectItem>
+            <SelectItem value="EngineeringDept">Engineering Dept</SelectItem>
+            <SelectItem value="NGO">NGO</SelectItem>
+            <SelectItem value="PrivateContractor">Private Contractor</SelectItem>
+            <SelectItem value="OtherGovtAgency">Other Govt Agency</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Role Type</label>
+        <Select
+          value={formData.roleType}
+          onValueChange={(val: any) => setFormData({ ...formData, roleType: val })}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Implementing">Implementing</SelectItem>
+            <SelectItem value="Executing">Executing</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Registration Number</label>
+        <Input
+          value={formData.registrationNumber || ''}
+          onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+        />
       </div>
     </div>
 
@@ -140,12 +174,29 @@ const AgencyForm = ({ formData, setFormData, onSubmit, submitLabel }: AgencyForm
     </div>
 
     <div className="space-y-2">
-      <label className="text-sm font-medium">Contact Person</label>
-      <Input
-        value={formData.contactPerson}
-        onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-        required
+      <label className="text-sm font-medium">Address</label>
+      <Textarea
+        value={formData.address || ''}
+        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
       />
+    </div>
+
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Contact Person</label>
+        <Input
+          value={formData.contactPerson}
+          onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Designation</label>
+        <Input
+          value={formData.designation || ''}
+          onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+        />
+      </div>
     </div>
 
     <div className="grid grid-cols-2 gap-4">
@@ -168,6 +219,31 @@ const AgencyForm = ({ formData, setFormData, onSubmit, submitLabel }: AgencyForm
       </div>
     </div>
 
+    <div className="grid grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">GSTIN</label>
+        <Input
+          value={formData.gstin || ''}
+          onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Website</label>
+        <Input
+          value={formData.website || ''}
+          onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+        />
+      </div>
+    </div>
+
+    <div className="space-y-2">
+      <label className="text-sm font-medium">Remarks</label>
+      <Textarea
+        value={formData.remarks || ''}
+        onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+      />
+    </div>
+
     <Button type="submit" className="w-full">{submitLabel}</Button>
   </form>
 );
@@ -180,7 +256,7 @@ export function AgencyMapping() {
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('all');
-  const [filterType, setFilterType] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
   // CRUD States
@@ -194,14 +270,19 @@ export function AgencyMapping() {
   const [formData, setFormData] = useState<Partial<Agency>>({
     name: '',
     code: '',
-    type: 'NGO',
-    role: 'Implementing',
+    category: 'NGO',
+    roleType: 'Implementing',
     state: '',
     district: '',
     contactPerson: '',
+    designation: '',
     phone: '',
     email: '',
     address: '',
+    registrationNumber: '',
+    gstin: '',
+    website: '',
+    remarks: '',
     components: [],
     assignedProjects: [],
     activeProjects: 0,
@@ -271,14 +352,19 @@ export function AgencyMapping() {
     setFormData({
       name: '',
       code: '',
-      type: 'NGO',
-      role: 'Implementing',
+      category: 'NGO',
+      roleType: 'Implementing',
       state: '',
       district: '',
       contactPerson: '',
+      designation: '',
       phone: '',
       email: '',
       address: '',
+      registrationNumber: '',
+      gstin: '',
+      website: '',
+      remarks: '',
       components: [],
       assignedProjects: [],
       activeProjects: 0,
@@ -296,14 +382,14 @@ export function AgencyMapping() {
 
   const filteredAgencies = agencies.filter(agency => {
     const matchesSearch =
-      agency.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      agency.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      agency.state.toLowerCase().includes(searchQuery.toLowerCase());
+      (agency.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (agency.code?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (agency.state?.toLowerCase() || '').includes(searchQuery.toLowerCase());
 
     const matchesState = filterState === 'all' || agency.state === filterState;
-    const matchesType = filterType === 'all' || agency.type === filterType;
+    const matchesCategory = filterCategory === 'all' || agency.category === filterCategory;
 
-    return matchesSearch && matchesState && matchesType;
+    return matchesSearch && matchesState && matchesCategory;
   });
 
 
@@ -380,17 +466,23 @@ export function AgencyMapping() {
                 </Select>
               </div>
               <div>
-                <label className="text-gray-700 mb-2 block">Agency Type</label>
-                <Select value={filterType} onValueChange={setFilterType}>
+                <label className="text-gray-700 mb-2 block">Category</label>
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     <SelectItem value="PWD">PWD</SelectItem>
-                    <SelectItem value="NGO">NGO</SelectItem>
+                    <SelectItem value="StateDept">State Dept</SelectItem>
                     <SelectItem value="PRI">PRI</SelectItem>
-                    <SelectItem value="State Dept">State Dept</SelectItem>
+                    <SelectItem value="ULB">ULB</SelectItem>
+                    <SelectItem value="DevelopmentAuthority">Development Authority</SelectItem>
+                    <SelectItem value="HousingBoard">Housing Board</SelectItem>
+                    <SelectItem value="EngineeringDept">Engineering Dept</SelectItem>
+                    <SelectItem value="NGO">NGO</SelectItem>
+                    <SelectItem value="PrivateContractor">Private Contractor</SelectItem>
+                    <SelectItem value="OtherGovtAgency">Other Govt Agency</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -403,8 +495,8 @@ export function AgencyMapping() {
                 <TableRow className="bg-gray-50">
                   <TableHead>Agency Code</TableHead>
                   <TableHead>Agency Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Role Type</TableHead>
                   <TableHead>Components</TableHead>
                   <TableHead>Active Projects</TableHead>
                   <TableHead>Contact Person</TableHead>
@@ -430,12 +522,12 @@ export function AgencyMapping() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{agency.type}</Badge>
+                        <Badge variant="outline">{agency.category}</Badge>
                       </TableCell>
-                      <TableCell>{agency.role}</TableCell>
+                      <TableCell>{agency.roleType}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {agency.components.map((comp) => (
+                          {(agency.components || []).map((comp) => (
                             <Badge key={comp} className="bg-blue-50 text-blue-700">
                               {comp}
                             </Badge>
@@ -508,12 +600,12 @@ export function AgencyMapping() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-500 mb-1">Agency Type</p>
-                    <Badge variant="outline">{selectedAgency.type}</Badge>
+                    <p className="text-gray-500 mb-1">Category</p>
+                    <Badge variant="outline">{selectedAgency.category}</Badge>
                   </div>
                   <div>
-                    <p className="text-gray-500 mb-1">Role</p>
-                    <p className="text-gray-900">{selectedAgency.role}</p>
+                    <p className="text-gray-500 mb-1">Role Type</p>
+                    <p className="text-gray-900">{selectedAgency.roleType}</p>
                   </div>
                   <div>
                     <p className="text-gray-500 mb-1">State</p>
@@ -528,7 +620,7 @@ export function AgencyMapping() {
                 <div>
                   <p className="text-gray-500 mb-2">Components Handled</p>
                   <div className="flex flex-wrap gap-2">
-                    {selectedAgency.components.map((comp) => (
+                    {(selectedAgency.components || []).map((comp) => (
                       <Badge key={comp} className="bg-blue-50 text-blue-700">
                         {comp}
                       </Badge>
@@ -539,6 +631,16 @@ export function AgencyMapping() {
                 <div>
                   <p className="text-gray-500 mb-2">Contact Information</p>
                   <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 w-24">Person:</span>
+                      <span className="text-gray-900">{selectedAgency.contactPerson}</span>
+                    </div>
+                    {selectedAgency.designation && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 w-24">Designation:</span>
+                        <span className="text-gray-900">{selectedAgency.designation}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" />
                       <span className="text-gray-900">{selectedAgency.phone}</span>
@@ -551,17 +653,39 @@ export function AgencyMapping() {
                 </div>
 
                 <div>
-                  <p className="text-gray-500 mb-2">Performance Score</p>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-gray-200 rounded-full h-3">
-                      <div
-                        className="bg-green-500 h-3 rounded-full"
-                        style={{ width: `${selectedAgency.performance}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-gray-900">{selectedAgency.performance}%</span>
+                  <p className="text-gray-500 mb-2">Additional Details</p>
+                  <div className="space-y-2">
+                    {selectedAgency.registrationNumber && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 w-32">Reg. Number:</span>
+                        <span className="text-gray-900">{selectedAgency.registrationNumber}</span>
+                      </div>
+                    )}
+                    {selectedAgency.gstin && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 w-32">GSTIN:</span>
+                        <span className="text-gray-900">{selectedAgency.gstin}</span>
+                      </div>
+                    )}
+                    {selectedAgency.website && (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-400" />
+                        <a href={selectedAgency.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {selectedAgency.website}
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {selectedAgency.remarks && (
+                  <div>
+                    <p className="text-gray-500 mb-2">Remarks</p>
+                    <div className="p-3 bg-gray-50 rounded-lg text-gray-700 text-sm">
+                      {selectedAgency.remarks}
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <p className="text-gray-500 mb-2">Statistics</p>

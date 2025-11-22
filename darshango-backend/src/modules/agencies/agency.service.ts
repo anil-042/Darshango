@@ -1,12 +1,14 @@
 import { db } from '../../config/firebase';
 
 export const createAgency = async (agencyData: any) => {
+    // BACKEND → FIRESTORE FLOW
     const docRef = await db.collection('agencies').add({
         ...agencyData,
         createdAt: new Date().toISOString(),
-        activeProjects: 0,
-        performance: 0,
-        lastUpdated: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        activeProjects: agencyData.activeProjects || 0,
+        performance: agencyData.performance || 0,
+        assignedProjects: agencyData.assignedProjects || []
     });
     return { id: docRef.id, ...agencyData };
 };

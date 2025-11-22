@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as agencyController from './agency.controller';
-import { protect, authorize } from '../../middleware/authMiddleware';
+import { protect } from '../../middleware/authMiddleware';
+import { authorize } from '../../middleware/roleMiddleware';
 import { validate, agencySchema } from '../../utils/validators';
 
 const router = Router();

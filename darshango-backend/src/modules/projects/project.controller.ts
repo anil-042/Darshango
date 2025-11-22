@@ -17,10 +17,11 @@ export const getProjects = async (req: Request, res: Response) => {
     // FRONTEND → BACKEND FLOW
     // ProjectManagement.tsx → GET /projects → project.controller.getProjects → project.service.getAllProjects
     try {
-        const projects = await projectService.getAllProjects();
-        successResponse(res, projects);
+        const filters = req.query;
+        const projects = await projectService.getAllProjects(filters);
+        successResponse(res, projects, 'Projects fetched successfully');
     } catch (error: any) {
-        errorResponse(res, error.message);
+        errorResponse(res, error.message, 500);
     }
 };
 

@@ -15,8 +15,14 @@ export const createMilestone = async (req: Request, res: Response) => {
 
 export const getMilestones = async (req: Request, res: Response) => {
     try {
-        const milestones = await milestoneService.getMilestones(req.params.id);
-        successResponse(res, milestones);
+        const projectId = req.params.id;
+        if (projectId) {
+            const milestones = await milestoneService.getMilestones(projectId);
+            successResponse(res, milestones);
+        } else {
+            const milestones = await milestoneService.getAllMilestones();
+            successResponse(res, milestones);
+        }
     } catch (error: any) {
         errorResponse(res, error.message);
     }

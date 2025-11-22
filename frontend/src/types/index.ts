@@ -18,14 +18,19 @@ export interface Agency {
     id: string;
     name: string;
     code: string;
-    type: string; // Changed from union to string to support NGO, PWD etc.
-    role: string;
+    category: 'PWD' | 'StateDept' | 'PRI' | 'ULB' | 'DevelopmentAuthority' | 'HousingBoard' | 'EngineeringDept' | 'NGO' | 'PrivateContractor' | 'OtherGovtAgency';
+    roleType: 'Implementing' | 'Executing';
     state: string;
     district: string;
+    address: string;
     contactPerson: string;
+    designation?: string;
     phone: string;
     email: string;
-    address: string;
+    registrationNumber?: string;
+    gstin?: string;
+    website?: string;
+    remarks?: string;
     assignedProjects: string[];
     components: string[];
     activeProjects: number;

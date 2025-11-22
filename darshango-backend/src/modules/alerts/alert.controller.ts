@@ -5,41 +5,31 @@ import { successResponse, errorResponse } from '../../utils/response';
 export const createAlert = async (req: Request, res: Response) => {
     try {
         const alert = await alertService.createAlert(req.body);
-        successResponse(res, alert, 'Alert created successfully', 201);
+        return successResponse(res, alert, 'Alert created successfully', 201);
     } catch (error: any) {
-        errorResponse(res, error.message);
+        return errorResponse(res, error.message, 500);
     }
 };
 
 export const getAlerts = async (req: Request, res: Response) => {
     try {
-        const { projectId } = req.query;
-        let alerts;
-        if (projectId) {
-            alerts = await alertService.getAlertsByProject(projectId as string);
-        } else {
-            alerts = await alertService.getAllAlerts();
-        }
-        successResponse(res, alerts);
+        const filters = {
+            projectId: req.query.projectId as string,
+            status: req.query.status as string,
+            priority: req.query.priority as string
+        };
+        const alerts = await alertService.getAlerts(filters);
+        return successResponse(res, alerts, 'Alerts fetched successfully');
     } catch (error: any) {
-        errorResponse(res, error.message);
+        return errorResponse(res, error.message, 500);
     }
 };
 
 export const updateAlert = async (req: Request, res: Response) => {
     try {
-        const alert = await alertService.updateAlert(req.params.id, req.body);
-        successResponse(res, alert, 'Alert updated successfully');
+        const updatedAlert = await alertService.updateAlert(req.params.id, req.body);
+        return successResponse(res, updatedAlert, 'Alert updated successfully');
     } catch (error: any) {
-        errorResponse(res, error.message);
-    }
-};
-
-export const deleteAlert = async (req: Request, res: Response) => {
-    try {
-        await alertService.deleteAlert(req.params.id);
-        successResponse(res, null, 'Alert deleted successfully');
-    } catch (error: any) {
-        errorResponse(res, error.message);
+        return errorResponse(res, error.message, 500);
     }
 };

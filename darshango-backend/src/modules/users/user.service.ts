@@ -1,8 +1,15 @@
 import { db } from '../../config/firebase';
 
-export const getAllUsers = async () => {
+export const getAllUsers = async (filters: any = {}) => {
     // BACKEND → FIRESTORE FLOW
-    const snapshot = await db.collection('users').get();
+    let query: FirebaseFirestore.Query = db.collection('users');
+
+    if (filters.role) query = query.where('role', '==', filters.role);
+    if (filters.agencyId) query = query.where('agencyId', '==', filters.agencyId);
+    if (filters.state) query = query.where('state', '==', filters.state);
+    if (filters.district) query = query.where('district', '==', filters.district);
+
+    const snapshot = await query.get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 

@@ -6,11 +6,8 @@ import { validate, alertSchema } from '../../utils/validators';
 
 const router = Router();
 
-router.use(protect);
-
-router.post('/', authorize('Admin', 'StateNodalOfficer', 'DistrictOfficer'), validate(alertSchema), alertController.createAlert);
-router.get('/', alertController.getAlerts);
-router.put('/:id', authorize('Admin', 'StateNodalOfficer'), alertController.updateAlert);
-router.delete('/:id', authorize('Admin'), alertController.deleteAlert);
+router.post('/', protect, authorize('Admin', 'StateNodalOfficer', 'DistrictOfficer'), validate(alertSchema), alertController.createAlert);
+router.get('/', protect, alertController.getAlerts);
+router.patch('/:id', protect, authorize('Admin', 'StateNodalOfficer', 'DistrictOfficer'), alertController.updateAlert);
 
 export default router;

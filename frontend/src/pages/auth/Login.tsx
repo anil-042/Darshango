@@ -56,9 +56,12 @@ export default function Login() {
                 <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
                         {error && (
-                            <div className="p-3 bg-red-50 text-red-700 rounded-md flex items-center gap-2 text-sm">
-                                <AlertCircle className="w-4 h-4" />
-                                {error}
+                            <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm break-words">
+                                <div className="flex items-center gap-2 font-medium">
+                                    <AlertCircle className="w-4 h-4" />
+                                    Login Failed
+                                </div>
+                                <div className="mt-1 text-xs font-mono">{error}</div>
                             </div>
                         )}
 

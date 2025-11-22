@@ -5,8 +5,6 @@ import { uploadFileToStorage } from '../../storage/upload';
 import { successResponse, errorResponse } from '../../utils/response';
 
 export const uploadDocument = async (req: AuthRequest, res: Response) => {
-    // FRONTEND → BACKEND FLOW
-    // DocumentsTab.tsx → POST /projects/:id/documents → document.controller.uploadDocument → uploadFileToStorage → document.service.createDocument
     try {
         if (!req.file) {
             return errorResponse(res, 'No file uploaded', 400);
@@ -17,13 +15,15 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
         const documentData = {
             title: req.body.title || req.file.originalname,
             type: req.file.mimetype,
-            size: req.file.size,
+            size: req.file.size.toString(),
             url: publicUrl,
             uploadedBy: req.user.id,
-            category: req.body.category
+            category: req.body.category,
+            agencyId: req.body.agencyId,
+            status: 'Verified' // Auto-verify for now, or 'Pending' if approval needed
         };
 
-        const document = await documentService.createDocument(req.params.id, documentData);
+        const document = await documentService.uploadDocument(req.params.id, documentData);
         successResponse(res, document, 'Document uploaded successfully', 201);
     } catch (error: any) {
         errorResponse(res, error.message);
@@ -32,8 +32,14 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
 
 export const getDocuments = async (req: Request, res: Response) => {
     try {
-        const documents = await documentService.getDocuments(req.params.id);
-        successResponse(res, documents);
+        const projectId = req.params.id;
+        if (projectId) {
+            const documents = await documentService.getDocuments(projectId);
+            successResponse(res, documents);
+        } else {
+            const documents = await documentService.getAllDocuments();
+            successResponse(res, documents);
+        }
     } catch (error: any) {
         errorResponse(res, error.message);
     }
