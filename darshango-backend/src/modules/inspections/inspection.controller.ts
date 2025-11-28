@@ -6,6 +6,7 @@ export const createInspection = async (req: Request, res: Response) => {
     // FRONTEND → BACKEND FLOW
     // InspectionsTab.tsx → POST /projects/:id/inspections → inspection.controller.createInspection → inspection.service.createInspection
     try {
+        console.log('Controller createInspection params:', req.params, 'body:', req.body);
         const inspection = await inspectionService.createInspection(req.params.id, req.body);
         successResponse(res, inspection, 'Inspection scheduled successfully', 201);
     } catch (error: any) {
@@ -48,9 +49,29 @@ export const updateInspection = async (req: Request, res: Response) => {
 };
 export const deleteInspection = async (req: Request, res: Response) => {
     try {
-        await inspectionService.deleteInspection(req.params.id, req.params.iid);
+        console.log('deleteInspection called. Params:', req.params);
+        let projectId = req.params.id;
+        const inspectionId = req.params.iid;
+
+        // If projectId is missing (global delete route), try to find it
+        if (!projectId) {
+            console.log('Global delete detected. Looking up project for inspection:', inspectionId);
+            // We can fetch the inspection from the root collection to find its project ID
+            const inspection = await inspectionService.getInspectionById(inspectionId);
+            if (inspection) {
+                console.log('Found inspection:', inspection);
+                projectId = inspection.projectId;
+            } else {
+                console.log('Inspection not found for ID:', inspectionId);
+                return errorResponse(res, 'Inspection not found', 404);
+            }
+        }
+
+        console.log('Deleting inspection:', inspectionId, 'from project:', projectId);
+        await inspectionService.deleteInspection(projectId, inspectionId);
         successResponse(res, null, 'Inspection deleted successfully');
     } catch (error: any) {
+        console.error('Delete failed:', error);
         errorResponse(res, error.message);
     }
 };

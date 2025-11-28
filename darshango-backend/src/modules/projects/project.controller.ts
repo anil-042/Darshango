@@ -21,6 +21,7 @@ export const getProjects = async (req: Request, res: Response) => {
         const projects = await projectService.getAllProjects(filters);
         successResponse(res, projects, 'Projects fetched successfully');
     } catch (error: any) {
+        console.error("[ProjectController] Error fetching projects:", error);
         errorResponse(res, error.message, 500);
     }
 };

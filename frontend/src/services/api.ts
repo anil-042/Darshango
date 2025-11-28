@@ -95,9 +95,11 @@ export const api = {
     // INSPECTIONS
     inspections: {
         getAll: async (): Promise<Inspection[]> => {
-            // We need a global inspections endpoint
-            const response = await axiosInstance.get('/projects/all/inspections'); // Placeholder, or we add global /inspections
-            // Actually, let's add global /inspections to backend first.
+            const response = await axiosInstance.get('/inspections');
+            return response.data.data;
+        },
+        getByProject: async (projectId: string): Promise<Inspection[]> => {
+            const response = await axiosInstance.get(`/projects/${projectId}/inspections`);
             return response.data.data;
         },
         create: async (inspection: Omit<Inspection, 'id'>): Promise<Inspection> => {
@@ -112,8 +114,12 @@ export const api = {
             const response = await axiosInstance.put(`/inspections/${id}`, updates);
             return response.data.data;
         },
-        delete: async (id: string): Promise<void> => {
-            const response = await axiosInstance.delete(`/inspections/${id}`);
+        delete: async (id: string, projectId?: string): Promise<void> => {
+            let url = `/inspections/${id}`;
+            if (projectId) {
+                url = `/projects/${projectId}/inspections/${id}`;
+            }
+            const response = await axiosInstance.delete(url);
             return response.data.data;
         }
     },
@@ -199,6 +205,40 @@ export const api = {
         },
         delete: async (projectId: string, milestoneId: string): Promise<void> => {
             const response = await axiosInstance.delete(`/projects/${projectId}/milestones/${milestoneId}`);
+            return response.data.data;
+        }
+    },
+
+    // MEETINGS
+    meetings: {
+        getAll: async (): Promise<any[]> => {
+            const response = await axiosInstance.get('/meetings');
+            return response.data.data;
+        },
+        create: async (meeting: { meetingWith: string, meetingId: string }): Promise<any> => {
+            const response = await axiosInstance.post('/meetings', meeting);
+            return response.data.data;
+        }
+    },
+
+    // MESSAGES
+    messages: {
+        getByProject: async (projectId: string): Promise<any[]> => {
+            const response = await axiosInstance.get(`/projects/${projectId}/messages`);
+            return response.data.data;
+        },
+        create: async (projectId: string, content: string, file?: File): Promise<any> => {
+            const formData = new FormData();
+            formData.append('content', content);
+            if (file) {
+                formData.append('file', file);
+            }
+
+            const response = await axiosInstance.post(`/projects/${projectId}/messages`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             return response.data.data;
         }
     }

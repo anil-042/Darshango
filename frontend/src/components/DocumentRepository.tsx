@@ -33,6 +33,8 @@ const categoryColors: Record<string, string> = {
   'Other': 'bg-gray-100 text-gray-700',
 };
 
+import { DocumentForm } from './forms/DocumentForm';
+
 export function DocumentRepository() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -48,16 +50,7 @@ export function DocumentRepository() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<string | null>(null);
 
-  // Form State
-  const [formData, setFormData] = useState<Partial<Document>>({
-    projectId: '',
-    title: '',
-    type: 'Other',
-    url: '#',
-    uploadedBy: user?.name || 'User',
-    uploadDate: new Date().toISOString().split('T')[0],
-    status: 'Pending'
-  });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -65,41 +58,29 @@ export function DocumentRepository() {
 
   const fetchData = async () => {
     setIsLoading(true);
+    setError(null);
+
+    // Fetch Projects
     try {
-      const [docsData, projectsData] = await Promise.all([
-        api.documents.getAll(),
-        api.projects.getAll()
-      ]);
-      setDocuments(docsData);
+      const projectsData = await api.projects.getAll();
       setProjects(projectsData);
-    } catch (error) {
-      console.error('Failed to fetch data', error);
+      console.log('Fetched projects:', projectsData);
+    } catch (error: any) {
+      console.error('Failed to fetch projects', error);
+      setError(prev => prev ? `${prev} | Projects: ${error.message}` : `Projects: ${error.message}`);
+    }
+
+    // Fetch Documents
+    try {
+      const docsData = await api.documents.getAll();
+      setDocuments(docsData);
+    } catch (error: any) {
+      console.error('Failed to fetch documents', error);
+      const msg = error.response?.data?.message || error.message || 'Failed to load documents';
+      // Don't block UI if only documents fail, just show error
+      setError(prev => prev ? `${prev} | Documents: ${msg}` : `Documents: ${msg}`);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.documents.create({
-        ...formData,
-        uploadedBy: user?.name || 'User',
-        uploadDate: new Date().toISOString().split('T')[0]
-      } as any);
-      setIsAddSheetOpen(false);
-      fetchData();
-      setFormData({
-        projectId: '',
-        title: '',
-        type: 'Other',
-        url: '#',
-        uploadedBy: user?.name || 'User',
-        uploadDate: new Date().toISOString().split('T')[0],
-        status: 'Pending'
-      });
-    } catch (error) {
-      console.error('Failed to upload document', error);
     }
   };
 
@@ -136,67 +117,14 @@ export function DocumentRepository() {
 
   const types = ['UC', 'Progress Report', 'Inspection Report', 'Other'];
 
-  const DocumentForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string }) => (
-    <form onSubmit={onSubmit} className="space-y-4 mt-6">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Project</label>
-        <Select
-          value={formData.projectId}
-          onValueChange={(val) => setFormData({ ...formData, projectId: val })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select Project" />
-          </SelectTrigger>
-          <SelectContent>
-            {projects.map(p => (
-              <SelectItem key={p.id} value={p.id}>{p.title} ({p.id})</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Document Title</label>
-        <Input
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="e.g., Q1 Progress Report"
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Document Type</label>
-        <Select
-          value={formData.type}
-          onValueChange={(val: any) => setFormData({ ...formData, type: val })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {types.map(t => (
-              <SelectItem key={t} value={t}>{t}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">File URL (Mock)</label>
-        <Input
-          value={formData.url}
-          onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-          placeholder="https://..."
-        />
-      </div>
-
-      <Button type="submit" className="w-full">{submitLabel}</Button>
-    </form>
-  );
-
   return (
     <div className="p-6 space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Document Repository</h1>
@@ -215,7 +143,13 @@ export function DocumentRepository() {
               <SheetHeader>
                 <SheetTitle>Upload New Document</SheetTitle>
               </SheetHeader>
-              <DocumentForm onSubmit={handleCreate} submitLabel="Upload" />
+              <DocumentForm
+                projects={projects}
+                onSuccess={() => {
+                  setIsAddSheetOpen(false);
+                  fetchData();
+                }}
+              />
             </SheetContent>
           </Sheet>
         )}

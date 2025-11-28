@@ -10,6 +10,11 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
             return errorResponse(res, 'No file uploaded', 400);
         }
 
+        const projectId = req.params.id || req.body.projectId;
+        if (!projectId) {
+            return errorResponse(res, 'Project ID is required', 400);
+        }
+
         const publicUrl = await uploadFileToStorage(req.file);
 
         const documentData = {
@@ -23,9 +28,10 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
             status: 'Verified' // Auto-verify for now, or 'Pending' if approval needed
         };
 
-        const document = await documentService.uploadDocument(req.params.id, documentData);
+        const document = await documentService.uploadDocument(projectId, documentData);
         successResponse(res, document, 'Document uploaded successfully', 201);
     } catch (error: any) {
+        console.error("[DocumentController] Upload failed:", error);
         errorResponse(res, error.message);
     }
 };

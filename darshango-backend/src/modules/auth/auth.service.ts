@@ -1,12 +1,16 @@
-import { db } from '../../config/firebase';
+import { supabase } from '../../config/supabase';
 import bcrypt from 'bcryptjs';
 import { signToken } from '../../utils/jwt';
 
 export const registerUser = async (userData: any) => {
-    // BACKEND → FIRESTORE FLOW
     // Check if user exists
-    const userQuery = await db.collection('users').where('email', '==', userData.email).get();
-    if (!userQuery.empty) {
+    const { data: existingUsers, error: checkError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', userData.email);
+
+    if (checkError) throw new Error(checkError.message);
+    if (existingUsers && existingUsers.length > 0) {
         throw new Error('Email already exists');
     }
 
@@ -15,34 +19,48 @@ export const registerUser = async (userData: any) => {
     const passwordHash = await bcrypt.hash(userData.password, salt);
 
     const newUser = {
-        ...userData,
-        passwordHash,
-        createdAt: new Date().toISOString(),
+        email: userData.email,
+        password_hash: passwordHash,
+        name: userData.fullName || userData.name, // Handle both naming conventions
         role: userData.role || 'Viewer',
-        status: 'Pending', // Default status
+        agency_id: userData.agencyId || null,
+        state: userData.state || null,
+        district: userData.district || null,
+        phone: userData.phone || null,
+        designation: userData.designation || null,
+        status: 'Pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
     };
 
-    delete newUser.password; // Remove plain password
+    // Create user in Supabase
+    const { data, error } = await supabase
+        .from('users')
+        .insert([newUser])
+        .select()
+        .single();
 
-    // Create user in Firestore
-    const docRef = await db.collection('users').add(newUser);
+    if (error) throw new Error(error.message);
 
-    return { id: docRef.id, ...newUser };
+    const { password_hash, ...userWithoutPassword } = data;
+    return { id: data.id, ...userWithoutPassword };
 };
 
 export const loginUser = async (email: string, password: string) => {
-    // BACKEND → FIRESTORE FLOW
-    const userQuery = await db.collection('users').where('email', '==', email).get();
+    const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email);
 
-    if (userQuery.empty) {
+    if (error) throw new Error(error.message);
+    if (!users || users.length === 0) {
         throw new Error('Invalid credentials');
     }
 
-    const userDoc = userQuery.docs[0];
-    const user = { id: userDoc.id, ...userDoc.data() } as any;
+    const user = users[0];
 
     // Verify password
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
         throw new Error('Invalid credentials');
     }
@@ -51,5 +69,17 @@ export const loginUser = async (email: string, password: string) => {
         throw new Error('Account is not active');
     }
 
-    return user;
+    // Map back to camelCase for frontend compatibility if needed, 
+    // but for now returning the raw DB object + id. 
+    // Ideally we should transform it.
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        agencyId: user.agency_id,
+        state: user.state,
+        district: user.district,
+        status: user.status
+    };
 };

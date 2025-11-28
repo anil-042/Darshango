@@ -1,26 +1,34 @@
-import { db } from '../../config/firebase';
+import { supabase } from '../../config/supabase';
 
 export const getDashboardStats = async (filters: any = {}) => {
-    // This is a heavy operation, in production we might want to cache this or use counters
-    const projectsSnapshot = await db.collection('projects').get();
-    const projects = projectsSnapshot.docs.map(doc => doc.data());
+    // Fetch all projects with necessary fields
+    const { data: projects, error } = await supabase
+        .from('projects')
+        .select('status, total_funds_released, total_funds_utilized, pending_ucs, district');
+
+    if (error) throw new Error(error.message);
 
     const totalProjects = projects.length;
-    const completedProjects = projects.filter(p => p.status === 'Completed').length;
-    const ongoingProjects = projects.filter(p => p.status === 'In Progress').length;
-    const delayedProjects = projects.filter(p => p.status === 'Delayed').length;
+    const completedProjects = projects.filter((p: any) => p.status === 'Completed').length;
+    const ongoingProjects = projects.filter((p: any) => p.status === 'In Progress').length;
+    const delayedProjects = projects.filter((p: any) => p.status === 'Delayed').length;
 
-    const totalFundsReleased = projects.reduce((acc, p) => acc + (p.totalFundsReleased || 0), 0);
-    const totalFundsUtilized = projects.reduce((acc, p) => acc + (p.totalFundsUtilized || 0), 0);
+    const totalFundsReleased = projects.reduce((acc: number, p: any) => acc + (p.total_funds_released || 0), 0);
+    const totalFundsUtilized = projects.reduce((acc: number, p: any) => acc + (p.total_funds_utilized || 0), 0);
 
-    const pendingUCs = projects.reduce((acc, p) => acc + (p.pendingUCs || 0), 0);
+    const pendingUCs = projects.reduce((acc: number, p: any) => acc + (p.pending_ucs || 0), 0);
 
-    const alertsSnapshot = await db.collection('alerts').where('status', 'in', ['Open', 'New', 'In Progress']).get();
-    const activeAlerts = alertsSnapshot.size;
+    // Active Alerts
+    const { count: activeAlerts, error: alertError } = await supabase
+        .from('alerts')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['Open', 'New', 'In Progress']);
 
-    // Geo distribution (simple count by district)
+    if (alertError) throw new Error(alertError.message);
+
+    // Geo distribution
     const districtDistribution: Record<string, number> = {};
-    projects.forEach(p => {
+    projects.forEach((p: any) => {
         const district = p.district || 'Unknown';
         districtDistribution[district] = (districtDistribution[district] || 0) + 1;
     });
@@ -39,7 +47,7 @@ export const getDashboardStats = async (filters: any = {}) => {
             utilizationPercentage: totalFundsReleased > 0 ? (totalFundsUtilized / totalFundsReleased) * 100 : 0
         },
         pendingUCs,
-        activeAlerts,
+        activeAlerts: activeAlerts || 0,
         districtDistribution
     };
 };

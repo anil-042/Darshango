@@ -55,6 +55,38 @@ export function TaskAllocation() {
 
     const [newTaskOpen, setNewTaskOpen] = useState(false);
 
+    const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [newTaskAssignee, setNewTaskAssignee] = useState('');
+    const [newTaskDescription, setNewTaskDescription] = useState('');
+    const [newTaskDueDate, setNewTaskDueDate] = useState('');
+    const [newTaskPriority, setNewTaskPriority] = useState<'high' | 'medium' | 'low'>('medium');
+
+    const handleCreateTask = () => {
+        if (!newTaskTitle || !newTaskAssignee || !newTaskDueDate) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        const newTask: Task = {
+            id: Date.now().toString(),
+            title: newTaskTitle,
+            assignee: newTaskAssignee,
+            dueDate: newTaskDueDate,
+            priority: newTaskPriority,
+            status: 'pending'
+        };
+
+        setTasks([newTask, ...tasks]);
+        setNewTaskOpen(false);
+
+        // Reset form
+        setNewTaskTitle('');
+        setNewTaskAssignee('');
+        setNewTaskDescription('');
+        setNewTaskDueDate('');
+        setNewTaskPriority('medium');
+    };
+
     const getStatusIcon = (status: TaskStatus) => {
         switch (status) {
             case 'completed': return <CheckCircle2 className="h-5 w-5 text-green-500" />;
@@ -103,18 +135,22 @@ export function TaskAllocation() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>Task Title</Label>
-                                    <Input placeholder="Enter task title" />
+                                    <Input
+                                        placeholder="Enter task title"
+                                        value={newTaskTitle}
+                                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Assignee</Label>
-                                    <Select>
+                                    <Select onValueChange={setNewTaskAssignee} value={newTaskAssignee}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select officer/agency" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="pwd">PWD Engineer</SelectItem>
-                                            <SelectItem value="ngo">NGO Representative</SelectItem>
-                                            <SelectItem value="dwo">District Welfare Officer</SelectItem>
+                                            <SelectItem value="PWD Engineer">PWD Engineer</SelectItem>
+                                            <SelectItem value="NGO Representative">NGO Representative</SelectItem>
+                                            <SelectItem value="District Welfare Officer">District Welfare Officer</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -122,17 +158,25 @@ export function TaskAllocation() {
 
                             <div className="space-y-2">
                                 <Label>Description</Label>
-                                <Input placeholder="Enter detailed task description" />
+                                <Input
+                                    placeholder="Enter detailed task description"
+                                    value={newTaskDescription}
+                                    onChange={(e) => setNewTaskDescription(e.target.value)}
+                                />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>Due Date</Label>
-                                    <Input type="date" />
+                                    <Input
+                                        type="date"
+                                        value={newTaskDueDate}
+                                        onChange={(e) => setNewTaskDueDate(e.target.value)}
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Priority</Label>
-                                    <Select>
+                                    <Select onValueChange={(val: any) => setNewTaskPriority(val)} value={newTaskPriority}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select priority" />
                                         </SelectTrigger>
@@ -144,7 +188,7 @@ export function TaskAllocation() {
                                     </Select>
                                 </div>
                             </div>
-                            <Button className="w-full mt-4" onClick={() => setNewTaskOpen(false)}>Create Task</Button>
+                            <Button className="w-full mt-4" onClick={handleCreateTask}>Create Task</Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -172,7 +216,14 @@ export function TaskAllocation() {
                                 <Badge variant="secondary" className={getPriorityColor(task.priority)}>
                                     {task.priority.toUpperCase()}
                                 </Badge>
-                                <Select defaultValue={task.status}>
+                                <Select
+                                    defaultValue={task.status}
+                                    onValueChange={(value: TaskStatus) => {
+                                        setTasks(tasks.map(t =>
+                                            t.id === task.id ? { ...t, status: value } : t
+                                        ));
+                                    }}
+                                >
                                     <SelectTrigger className="w-[130px]">
                                         <SelectValue />
                                     </SelectTrigger>

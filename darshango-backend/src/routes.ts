@@ -10,6 +10,8 @@ import documentRoutes from './modules/documents/document.routes';
 import alertRoutes from './modules/alerts/alert.routes';
 import reportRoutes from './modules/reports/report.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
+import meetingRoutes from './modules/meetings/meeting.routes';
+import messageRoutes from './modules/messages/message.routes';
 
 const router = Router();
 
@@ -24,11 +26,13 @@ router.use('/funds', fundRoutes); // Global funds route
 router.use('/inspections', inspectionRoutes); // Global inspections route
 router.use('/documents', documentRoutes); // Global documents route
 router.use('/milestones', milestoneRoutes); // Global milestones route
+router.use('/meetings', meetingRoutes);
 
 // Nested routes for project sub-resources
 router.use('/projects/:id/milestones', milestoneRoutes);
 router.use('/projects/:id/funds', fundRoutes);
 router.use('/projects/:id/inspections', inspectionRoutes);
 router.use('/projects/:id/documents', documentRoutes);
+router.use('/projects/:projectId/messages', messageRoutes);
 
 export default router;

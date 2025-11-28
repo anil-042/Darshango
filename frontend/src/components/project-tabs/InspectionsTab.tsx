@@ -59,8 +59,7 @@ export function InspectionsTab({ projectId }: InspectionsTabProps) {
   const fetchInspections = async () => {
     setIsLoading(true);
     try {
-      const allInspections = await api.inspections.getAll();
-      const projectInspections = allInspections.filter(i => i.projectId === projectId);
+      const projectInspections = await api.inspections.getByProject(projectId);
       setInspections(projectInspections);
     } catch (error) {
       console.error('Failed to fetch inspections', error);

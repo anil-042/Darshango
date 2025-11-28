@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from './ui/alert-dialog';
 import { locationData } from '../data/locations';
+import { InspectionForm } from './forms/InspectionForm';
 
 export function MonitoringInspections() {
   const [inspections, setInspections] = useState<Inspection[]>([]);
@@ -51,17 +52,7 @@ export function MonitoringInspections() {
 
   // CRUD States
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
-  const [inspectionToDelete, setInspectionToDelete] = useState<string | null>(null);
-
-  // Form State
-  const [formData, setFormData] = useState<Partial<Inspection>>({
-    projectId: '',
-    inspectorId: '',
-    date: new Date().toISOString().split('T')[0],
-    status: 'Scheduled',
-    findings: '',
-    location: ''
-  });
+  const [inspectionToDelete, setInspectionToDelete] = useState<{ id: string, projectId: string } | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -83,33 +74,15 @@ export function MonitoringInspections() {
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await api.inspections.create(formData as any);
-      setIsAddSheetOpen(false);
-      fetchData();
-      setFormData({
-        projectId: '',
-        inspectorId: '',
-        date: new Date().toISOString().split('T')[0],
-        status: 'Scheduled',
-        findings: '',
-        location: ''
-      });
-    } catch (error) {
-      console.error('Failed to schedule inspection', error);
-    }
-  };
-
   const handleDelete = async () => {
     if (!inspectionToDelete) return;
     try {
-      await api.inspections.delete(inspectionToDelete);
+      await api.inspections.delete(inspectionToDelete.id, inspectionToDelete.projectId);
       setInspectionToDelete(null);
       fetchData();
     } catch (error) {
       console.error('Failed to delete inspection', error);
+      alert('Failed to delete inspection. Please try again.');
     }
   };
 
@@ -134,76 +107,6 @@ export function MonitoringInspections() {
     return matchesSearch && matchesStatus && matchesState && matchesDistrict;
   });
 
-  const InspectionForm = ({ onSubmit, submitLabel }: { onSubmit: (e: React.FormEvent) => void, submitLabel: string }) => (
-    <form onSubmit={onSubmit} className="space-y-4 mt-6">
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Project</label>
-        <Select
-          value={formData.projectId}
-          onValueChange={(val) => setFormData({ ...formData, projectId: val })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select Project" />
-          </SelectTrigger>
-          <SelectContent>
-            {projects.map(p => (
-              <SelectItem key={p.id} value={p.id}>{p.title} ({p.id})</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Inspector Name/ID</label>
-        <Input
-          value={formData.inspectorId}
-          onChange={(e) => setFormData({ ...formData, inspectorId: e.target.value })}
-          placeholder="e.g., INS-001"
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Date</label>
-          <Input
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Status</label>
-          <Select
-            value={formData.status}
-            onValueChange={(val: any) => setFormData({ ...formData, status: val })}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Scheduled">Scheduled</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="Reported">Reported</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Initial Findings/Notes</label>
-        <Input
-          value={formData.findings}
-          onChange={(e) => setFormData({ ...formData, findings: e.target.value })}
-          placeholder="Optional"
-        />
-      </div>
-
-      <Button type="submit" className="w-full">{submitLabel}</Button>
-    </form>
-  );
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -224,7 +127,13 @@ export function MonitoringInspections() {
               <SheetHeader>
                 <SheetTitle>Schedule New Inspection</SheetTitle>
               </SheetHeader>
-              <InspectionForm onSubmit={handleCreate} submitLabel="Schedule Inspection" />
+              <InspectionForm
+                projects={projects}
+                onSuccess={() => {
+                  setIsAddSheetOpen(false);
+                  fetchData();
+                }}
+              />
             </SheetContent>
           </Sheet>
         )}
@@ -371,7 +280,7 @@ export function MonitoringInspections() {
                                 variant="ghost"
                                 size="sm"
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => setInspectionToDelete(inspection.id)}
+                                onClick={() => setInspectionToDelete({ id: inspection.id, projectId: inspection.projectId })}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>

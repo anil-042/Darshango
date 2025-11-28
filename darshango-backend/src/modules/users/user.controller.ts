@@ -22,6 +22,15 @@ export const getUser = async (req: Request, res: Response) => {
     }
 };
 
+export const createUser = async (req: Request, res: Response) => {
+    try {
+        const user = await userService.createUser(req.body);
+        successResponse(res, user, 'User created successfully');
+    } catch (error: any) {
+        errorResponse(res, error.message);
+    }
+};
+
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const user = await userService.updateUser(req.params.id, req.body);
@@ -33,9 +42,11 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
     try {
+        console.log(`[UserController] Deleting user with ID: ${req.params.id}`);
         await userService.deleteUser(req.params.id);
         successResponse(res, null, 'User deleted successfully');
     } catch (error: any) {
+        console.error(`[UserController] Failed to delete user: ${error.message}`);
         errorResponse(res, error.message);
     }
 };

@@ -68,6 +68,20 @@ export function IssueEscalation() {
         }
     };
 
+    const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+
+    const handleResolve = (id: string) => {
+        setIssues(issues.map(issue =>
+            issue.id === id ? { ...issue, status: 'resolved' as const } : issue
+        ));
+    };
+
+    const handleEscalate = (id: string) => {
+        setIssues(issues.map(issue =>
+            issue.id === id ? { ...issue, status: 'escalated' as const } : issue
+        ));
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -150,13 +164,28 @@ export function IssueEscalation() {
                             </p>
 
                             <div className="flex gap-3 justify-end">
-                                <Button variant="outline" size="sm">View Details</Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setSelectedIssue(issue)}
+                                >
+                                    View Details
+                                </Button>
                                 {issue.status !== 'resolved' && (
                                     <>
-                                        <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-green-600 hover:text-green-700"
+                                            onClick={() => handleResolve(issue.id)}
+                                        >
                                             <CheckCircle className="mr-2 h-4 w-4" /> Mark Resolved
                                         </Button>
-                                        <Button size="sm" className="bg-red-600 hover:bg-red-700">
+                                        <Button
+                                            size="sm"
+                                            className="bg-red-600 hover:bg-red-700"
+                                            onClick={() => handleEscalate(issue.id)}
+                                        >
                                             <ArrowUpRight className="mr-2 h-4 w-4" /> Escalate
                                         </Button>
                                     </>
@@ -166,6 +195,69 @@ export function IssueEscalation() {
                     </Card>
                 ))}
             </div>
+
+            {/* View Details Dialog */}
+            <Dialog open={!!selectedIssue} onOpenChange={(open) => !open && setSelectedIssue(null)}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Issue Details</DialogTitle>
+                    </DialogHeader>
+                    {selectedIssue && (
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-start border-b pb-4">
+                                <div>
+                                    <h3 className="text-xl font-bold mb-2">{selectedIssue.title}</h3>
+                                    <div className="flex gap-2">
+                                        <Badge className={getSeverityColor(selectedIssue.severity)}>
+                                            {selectedIssue.severity.toUpperCase()}
+                                        </Badge>
+                                        {getStatusBadge(selectedIssue.status)}
+                                    </div>
+                                </div>
+                                <div className="text-right text-sm text-slate-500">
+                                    <p>ID: {selectedIssue.id}</p>
+                                    <p>{selectedIssue.date}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="text-sm font-semibold text-slate-500 mb-1">Description</h4>
+                                    <div className="bg-slate-50 p-4 rounded-lg text-slate-800">
+                                        {selectedIssue.description}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-slate-500 mb-1">Raised By</h4>
+                                        <p className="font-medium">{selectedIssue.raisedBy}</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-slate-500 mb-1">Current Status</h4>
+                                        <p className="font-medium capitalize">{selectedIssue.status}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4 border-t">
+                                <Button variant="outline" onClick={() => setSelectedIssue(null)}>Close</Button>
+                                {selectedIssue.status !== 'resolved' && (
+                                    <Button
+                                        className="bg-green-600 hover:bg-green-700"
+                                        onClick={() => {
+                                            handleResolve(selectedIssue.id);
+                                            setSelectedIssue(null);
+                                        }}
+                                    >
+                                        Mark as Resolved
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

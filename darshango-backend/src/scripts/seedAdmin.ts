@@ -1,28 +1,26 @@
-import * as admin from 'firebase-admin';
+import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+// Load env from the root directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-// Initialize Firebase Admin (Copy of config/firebase.ts logic simplified)
-if (!admin.apps.length) {
-    try {
-        admin.initializeApp({
-            credential: admin.credential.cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            }),
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-        });
-        console.log('Firebase Initialized');
-    } catch (error) {
-        console.error('Firebase Init Failed:', error);
-        process.exit(1);
-    }
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+console.log('--- Seeding Admin User ---');
+console.log('Reading .env from:', path.resolve(__dirname, '../../.env'));
+console.log('SUPABASE_URL found:', !!supabaseUrl);
+console.log('SUPABASE_SERVICE_ROLE_KEY found:', !!supabaseKey);
+
+if (!supabaseUrl || !supabaseKey) {
+    console.error('CRITICAL ERROR: Missing Supabase credentials in .env file.');
+    console.error('Please ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
+    process.exit(1);
 }
 
-const db = admin.firestore();
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const seedAdmin = async () => {
     const email = 'admin@darshango.com';
@@ -30,12 +28,26 @@ const seedAdmin = async () => {
     const name = 'Admin User';
 
     try {
+        console.log(`Checking if user ${email} exists...`);
         // Check if admin exists
-        const userQuery = await db.collection('users').where('email', '==', email).get();
-        if (!userQuery.empty) {
-            console.log('Admin user already exists.');
+        const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "The result contains 0 rows"
+            console.error('Error checking existing user:', fetchError.message);
             return;
         }
+
+        if (existingUser) {
+            console.log('Admin user already exists in the database.');
+            console.log('User ID:', existingUser.id);
+            return;
+        }
+
+        console.log('User not found. Creating new admin user...');
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
@@ -44,19 +56,31 @@ const seedAdmin = async () => {
         const newUser = {
             name,
             email,
-            passwordHash,
+            password_hash: passwordHash,
             role: 'Admin',
             status: 'Active',
-            createdAt: new Date().toISOString(),
+            created_at: new Date().toISOString(),
         };
 
-        await db.collection('users').add(newUser);
+        const { data: createdUser, error: insertError } = await supabase
+            .from('users')
+            .insert([newUser])
+            .select()
+            .single();
+
+        if (insertError) {
+            console.error('Error inserting admin user:', insertError.message);
+            console.error('Details:', insertError);
+            throw new Error(insertError.message);
+        }
+
         console.log(`Admin user created successfully!`);
+        console.log(`ID: ${createdUser.id}`);
         console.log(`Email: ${email}`);
         console.log(`Password: ${password}`);
 
-    } catch (error) {
-        console.error('Error seeding admin:', error);
+    } catch (error: any) {
+        console.error('Unexpected error seeding admin:', error.message || error);
     }
 };
 

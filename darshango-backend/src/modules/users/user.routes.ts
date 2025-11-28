@@ -9,6 +9,7 @@ router.use(protect); // Protect all routes
 
 router.get('/', authorize('Admin', 'StateNodalOfficer'), userController.getUsers);
 router.get('/:id', userController.getUser);
+router.post('/', authorize('Admin'), userController.createUser);
 router.patch('/:id', authorize('Admin'), userController.updateUser);
 router.delete('/:id', authorize('Admin'), userController.deleteUser);
 

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
-import { db } from '../config/firebase';
+import { supabase } from '../config/supabase';
 
 export interface AuthRequest extends Request {
     user?: any;
@@ -23,13 +23,17 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             return res.status(401).json({ success: false, message: 'Invalid token' });
         }
 
-        const userDoc = await db.collection('users').doc(decoded.id).get();
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', decoded.id)
+            .single();
 
-        if (!userDoc.exists) {
+        if (error || !user) {
             return res.status(401).json({ success: false, message: 'User no longer exists' });
         }
 
-        req.user = { id: userDoc.id, ...userDoc.data() };
+        req.user = user;
         next();
     } catch (error) {
         return res.status(401).json({ success: false, message: 'Not authorized' });
