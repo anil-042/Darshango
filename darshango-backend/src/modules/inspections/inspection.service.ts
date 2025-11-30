@@ -18,6 +18,7 @@ export const createInspection = async (projectId: string, inspectionData: any) =
         geo_location_lat: inspectionData.geoLocation?.lat,
         geo_location_lng: inspectionData.geoLocation?.lng,
         images: inspectionData.images,
+        inspection_id: inspectionData.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -89,6 +90,8 @@ export const updateInspection = async (projectId: string, inspectionId: string, 
         dbUpdate.geo_location_lat = updateData.geoLocation.lat;
         dbUpdate.geo_location_lng = updateData.geoLocation.lng;
     }
+    if (updateData.detailedReview) dbUpdate.review = updateData.detailedReview;
+    if (updateData.customId) dbUpdate.inspection_id = updateData.customId;
     if (updateData.images) dbUpdate.images = updateData.images;
 
     const { data, error } = await supabase
@@ -131,6 +134,8 @@ const mapInspection = (i: any) => ({
     severity: i.severity,
     comments: i.comments,
     findings: i.findings,
+    detailedReview: i.review,
+    customId: i.inspection_id,
     checklist: i.checklist,
     geoLocation: {
         lat: i.geo_location_lat,

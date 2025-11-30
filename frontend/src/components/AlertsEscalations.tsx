@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -75,10 +76,17 @@ export function AlertsEscalations() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.alerts.create(formData as any);
+      const payload = { ...formData };
+      if (payload.id) {
+        payload.description = `[ID: ${payload.id}] ${payload.description}`;
+        delete payload.id;
+      }
+      await api.alerts.create(payload as any);
       setIsAddSheetOpen(false);
       fetchData();
+      toast.success('Alert raised successfully');
       setFormData({
+        id: '',
         projectId: '',
         type: 'Delay',
         priority: 'Medium',
@@ -88,12 +96,16 @@ export function AlertsEscalations() {
       });
     } catch (error) {
       console.error('Failed to raise alert', error);
+      toast.error('Failed to raise alert');
     }
   };
 
   const handleResolve = async (alert: Alert) => {
     try {
-      // Visual update only for now as API lacks update
+      // Call API to update status
+      await api.alerts.update(alert.id, { status: 'Resolved' });
+
+      // Update local state
       const updatedAlerts = alerts.map(a =>
         a.id === alert.id ? { ...a, status: 'Resolved' as const } : a
       );
@@ -238,14 +250,16 @@ export function AlertsEscalations() {
                     const project = getProjectDetails(alert.projectId);
                     return (
                       <TableRow key={alert.id}>
-                        <TableCell className="font-mono text-xs">{alert.id}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {alert.description?.match(/^\[ID: (.+?)\]/) ? alert.description.match(/^\[ID: (.+?)\]/)?.[1] : alert.id.substring(0, 8)}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline">{alert.type}</Badge>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="text-gray-900 font-medium">{project?.title || alert.projectId || 'N/A'}</p>
-                            <p className="text-xs text-gray-500">{alert.projectId}</p>
+                            <p className="text-gray-900 font-medium">{project?.title || 'N/A'}</p>
+                            <p className="text-xs text-gray-500">{project?.projectId || alert.projectId}</p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -257,8 +271,10 @@ export function AlertsEscalations() {
                             {alert.priority || alert.severity}
                           </Badge>
                         </TableCell>
-                        <TableCell className="max-w-xs truncate" title={alert.description || alert.message}>
-                          {alert.description || alert.message}
+                        <TableCell className="max-w-[250px]">
+                          <div className="truncate" title={alert.description || alert.message}>
+                            {alert.description || alert.message}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge className={

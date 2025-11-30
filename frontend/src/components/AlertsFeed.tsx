@@ -119,7 +119,7 @@ export function AlertsFeed() {
                       <span className="text-gray-900">{alert.type}</span>
                       <Badge className={getPriorityColor(alert.priority)}>{alert.priority}</Badge>
                     </div>
-                    <p className="text-gray-600 mb-1">{alert.description}</p>
+                    <p className="text-gray-600 mb-1 line-clamp-2">{alert.description}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500">Project ID: {getProjectId(alert.projectId)}</span>
                       <span className="text-gray-400">{formatDate(alert.date)}</span>

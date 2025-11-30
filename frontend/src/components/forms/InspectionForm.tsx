@@ -38,9 +38,11 @@ export function InspectionForm({ projects, onSuccess }: InspectionFormProps) {
         }
 
         try {
-            await api.inspections.create(formData as any);
+            const payload = { ...formData };
+            await api.inspections.create(payload as any);
             // Reset form
             setFormData({
+                id: '',
                 projectId: '',
                 inspectorId: '',
                 inspectorName: '',
@@ -61,17 +63,34 @@ export function InspectionForm({ projects, onSuccess }: InspectionFormProps) {
     return (
         <form onSubmit={handleSubmit} className="space-y-4 mt-6">
             <div className="space-y-2">
+                <label className="text-sm font-medium">Inspection ID (Optional)</label>
+                <Input
+                    value={formData.id || ''}
+                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                    placeholder="Custom Inspection ID"
+                />
+            </div>
+
+            <div className="space-y-2">
                 <label className="text-sm font-medium">Project</label>
                 <Select
                     value={formData.projectId}
-                    onValueChange={(val) => setFormData({ ...formData, projectId: val })}
+                    onValueChange={(val) => {
+                        const project = projects.find(p => p.id === val);
+                        setFormData({
+                            ...formData,
+                            projectId: val,
+                            location: project?.district ? `${project.district}, ${project.state}` : '',
+                            geoLocation: project?.location
+                        });
+                    }}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Select Project" />
                     </SelectTrigger>
                     <SelectContent>
                         {projects.map(p => (
-                            <SelectItem key={p.id} value={p.id}>{p.title} ({p.id})</SelectItem>
+                            <SelectItem key={p.id} value={p.id}>{p.title} ({p.projectId})</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>

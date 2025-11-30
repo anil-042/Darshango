@@ -10,6 +10,7 @@ router.use(protect);
 
 router.post('/', authorize('Admin', 'StateNodalOfficer', 'Inspector'), validate(inspectionSchema), inspectionController.createInspection);
 router.get('/', inspectionController.getInspections);
+router.get('/:iid', inspectionController.getInspection);
 router.put('/:iid', authorize('Admin', 'Inspector'), inspectionController.updateInspection);
 router.delete('/:iid', authorize('Admin', 'Inspector'), inspectionController.deleteInspection);
 

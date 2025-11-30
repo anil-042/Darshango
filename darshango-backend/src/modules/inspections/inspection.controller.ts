@@ -75,3 +75,15 @@ export const deleteInspection = async (req: Request, res: Response) => {
         errorResponse(res, error.message);
     }
 };
+export const getInspection = async (req: Request, res: Response) => {
+    try {
+        const inspectionId = req.params.iid;
+        const inspection = await inspectionService.getInspectionById(inspectionId);
+        if (!inspection) {
+            return errorResponse(res, 'Inspection not found', 404);
+        }
+        successResponse(res, inspection);
+    } catch (error: any) {
+        errorResponse(res, error.message);
+    }
+};

@@ -1,7 +1,7 @@
 import { supabase } from '../../config/supabase';
 
 export const createAlert = async (alertData: any) => {
-    const dbAlert = {
+    const dbAlert: any = {
         type: alertData.type,
         project_id: alertData.projectId,
         priority: alertData.priority,

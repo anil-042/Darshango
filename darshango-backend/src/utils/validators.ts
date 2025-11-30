@@ -123,6 +123,7 @@ export const milestoneSchema = z.object({
 });
 
 export const alertSchema = z.object({
+    id: z.string().optional(),
     type: z.string(),
     projectId: z.string(),
     priority: z.enum(['High', 'Medium', 'Low']),

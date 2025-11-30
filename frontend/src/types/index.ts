@@ -68,8 +68,10 @@ export interface Inspection {
     comments: string;
     inspectorId?: string;
     findings?: string;
-    geoLocation?: string;
+    geoLocation?: string | { lat: number; lng: number };
     location?: string;
+    customId?: string;
+    detailedReview?: string;
     images?: string[];
     detailedReview?: string;
 }

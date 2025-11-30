@@ -66,7 +66,7 @@ export const api = {
         },
         create: async (txn: Omit<Transaction, 'id'>): Promise<Transaction> => {
             let url = '/funds';
-            const payload = { ...txn };
+            const payload: any = { ...txn };
 
             if (txn.projectId && txn.projectId !== 'GLOBAL_FUND_FLOW') {
                 url = `/projects/${txn.projectId}/funds`;
@@ -96,6 +96,10 @@ export const api = {
     inspections: {
         getAll: async (): Promise<Inspection[]> => {
             const response = await axiosInstance.get('/inspections');
+            return response.data.data;
+        },
+        getById: async (id: string): Promise<Inspection> => {
+            const response = await axiosInstance.get(`/inspections/${id}`);
             return response.data.data;
         },
         getByProject: async (projectId: string): Promise<Inspection[]> => {
@@ -160,7 +164,7 @@ export const api = {
             return response.data.data;
         },
         update: async (id: string, updates: Partial<Alert>): Promise<Alert> => {
-            const response = await axiosInstance.put(`/alerts/${id}`, updates);
+            const response = await axiosInstance.patch(`/alerts/${id}`, updates);
             return response.data.data;
         },
         delete: async (id: string): Promise<void> => {

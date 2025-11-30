@@ -248,11 +248,13 @@ export function MonitoringInspections() {
                     const project = getProjectDetails(inspection.projectId);
                     return (
                       <TableRow key={inspection.id}>
-                        <TableCell className="font-mono text-xs">{inspection.id}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {inspection.customId || (inspection.comments?.match(/^\[ID: (.+?)\]/)?.[1]) || inspection.id.substring(0, 8)}
+                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="text-gray-900 font-medium">{project?.title || inspection.projectId}</p>
-                            <p className="text-xs text-gray-500">{inspection.projectId}</p>
+                            <p className="text-xs text-gray-500">{project?.projectId || inspection.projectId}</p>
                           </div>
                         </TableCell>
                         <TableCell>{project?.state || '-'}</TableCell>

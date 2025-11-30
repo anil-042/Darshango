@@ -1,6 +1,7 @@
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import { Input } from '../ui/input';
 import { Alert, Project } from '../../types';
 
 interface AlertFormProps {
@@ -14,6 +15,15 @@ interface AlertFormProps {
 export function AlertForm({ formData, setFormData, onSubmit, submitLabel, projects }: AlertFormProps) {
     return (
         <form onSubmit={onSubmit} className="space-y-4 mt-6">
+            <div className="space-y-2">
+                <label className="text-sm font-medium">Alert ID (Optional)</label>
+                <Input
+                    value={formData.id || ''}
+                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                    placeholder="Custom Alert ID"
+                />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <label className="text-sm font-medium">Project</label>
@@ -26,7 +36,7 @@ export function AlertForm({ formData, setFormData, onSubmit, submitLabel, projec
                         </SelectTrigger>
                         <SelectContent>
                             {projects.map(p => (
-                                <SelectItem key={p.id} value={p.id}>{p.title} ({p.id})</SelectItem>
+                                <SelectItem key={p.id} value={p.id}>{p.title} ({p.projectId})</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
