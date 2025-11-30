@@ -269,7 +269,7 @@ export function AlertsEscalations() {
                             {alert.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-gray-600">{alert.date}</TableCell>
+                        <TableCell className="text-gray-600">{alert.date?.split('T')[0]}</TableCell>
                         <TableCell>
                           {alert.status !== 'Resolved' && canEdit && (
                             <Button

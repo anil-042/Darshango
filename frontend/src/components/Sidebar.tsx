@@ -93,12 +93,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </nav>
 
       <div className="p-4 border-t border-gray-100">
-        {!collapsed && (
-          <div className="bg-blue-50 rounded-lg p-4">
-            <p className="text-sm font-medium text-blue-900">Need Help?</p>
-            <p className="text-xs text-blue-700 mt-1">Contact support team</p>
-          </div>
-        )}
+        {/* Need Help button removed */}
       </div>
     </div>
   );

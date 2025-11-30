@@ -104,7 +104,7 @@ export function InspectionDetails() {
               <Calendar className="w-4 h-4 text-gray-400 mt-1" />
               <div>
                 <p className="text-gray-500">Inspection Date</p>
-                <p className="text-gray-900">{inspection.date}</p>
+                <p className="text-gray-900">{inspection.date?.split('T')[0]}</p>
               </div>
             </div>
             <div className="flex items-start gap-2">

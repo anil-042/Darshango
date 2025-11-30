@@ -55,11 +55,12 @@ export function RecentProjects() {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-gray-500">{project.id}</span>
                     <Badge variant="outline">{project.component}</Badge>
                   </div>
-                  <p className="text-gray-900">{project.title}</p>
-                  <p className="text-gray-500 mt-1">{project.state}</p>
+                  <div>
+                    <h3 className="text-gray-900 font-medium">{project.title}</h3>
+                    <span className="text-gray-500">{project.projectId || 'N/A'}</span>
+                  </div>
                 </div>
                 <Badge className={getStatusColor(project.status)}>{project.status}</Badge>
               </div>

@@ -90,7 +90,7 @@ export function ProjectDetails() {
                     <h1 className="text-gray-900 text-xl font-bold">{project.title}</h1>
                     <Badge className={statusColor}>{project.status}</Badge>
                   </div>
-                  <p className="text-gray-500 mb-2">{project.projectId || project.id}</p>
+                  <p className="text-gray-500 mb-2">{project.projectId || 'N/A'}</p>
                   <Badge variant="outline">{project.component}</Badge>
                 </div>
               </div>
@@ -121,7 +121,9 @@ export function ProjectDetails() {
                   <Calendar className="w-4 h-4 text-gray-400 mt-1" />
                   <div>
                     <p className="text-gray-500 text-sm">Timeline</p>
-                    <p className="text-gray-900 font-medium">{project.startDate} to {project.endDate}</p>
+                    <p className="text-gray-900 font-medium">
+                      {project.startDate?.split('T')[0]} to {project.endDate?.split('T')[0]}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -250,8 +252,8 @@ export function ProjectDetails() {
             <TabsContent value="logs" className="mt-6">
               <div className="space-y-3">
                 {[
-                  { action: 'Project status updated to "In Progress"', user: 'Admin User', date: '2024-11-20 10:30' },
-                  { action: 'Fund release approved - ₹50L', user: 'Finance Officer', date: '2024-11-19 14:15' },
+                  { action: 'Project status updated to "In Progress"', user: 'Admin User', date: '2024-11-20' },
+                  { action: 'Fund release approved - ₹50L', user: 'Finance Officer', date: '2024-11-19' },
                 ].map((log, idx) => (
                   <div key={idx} className="flex justify-between items-start p-3 border border-gray-200 rounded-lg">
                     <div>

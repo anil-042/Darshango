@@ -104,11 +104,16 @@ export interface Milestone {
     id: string;
     projectId: string;
     title: string;
-    status: 'Pending' | 'In Progress' | 'Completed';
+    status: 'Pending' | 'In Progress' | 'Partially Completed' | 'Nearly Completed' | 'Completed';
     owner: string;
+    startDate?: string;
     dueDate: string;
-    completionDate?: string | null;
+    completionDate?: string;
     progress: number;
+    remarks?: string;
+    orderIndex?: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export type UserRole = 'Admin' | 'StateNodalOfficer' | 'DistrictOfficer' | 'AgencyAdmin' | 'Inspector' | 'Viewer';

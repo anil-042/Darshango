@@ -536,7 +536,7 @@ export function AgencyMapping() {
                       </TableCell>
                       <TableCell>{agency.activeProjects}</TableCell>
                       <TableCell>{agency.contactPerson}</TableCell>
-                      <TableCell className="text-gray-500">{agency.lastUpdated}</TableCell>
+                      <TableCell className="text-gray-500">{agency.lastUpdated?.split('T')[0]}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button
@@ -696,7 +696,7 @@ export function AgencyMapping() {
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-gray-600 mb-1">Last Updated</p>
-                      <p className="text-gray-900">{selectedAgency.lastUpdated}</p>
+                      <p className="text-gray-900">{selectedAgency.lastUpdated?.split('T')[0]}</p>
                     </div>
                   </div>
                 </div>

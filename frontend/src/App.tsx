@@ -14,6 +14,7 @@ import { AgencyMapping } from './components/AgencyMapping';
 import { ProjectManagement } from './components/ProjectManagement';
 import { ProjectDetails } from './components/ProjectDetails';
 import { FundFlow } from './components/FundFlow';
+import { HelpChatbox } from './components/HelpChatbox';
 import { MonitoringInspections } from './components/MonitoringInspections';
 import { InspectionDetails } from './components/InspectionDetails';
 import { DocumentRepository } from './components/DocumentRepository';
@@ -22,19 +23,26 @@ import { Reports } from './components/Reports';
 import { Communication } from './components/Communication';
 import { Admin } from './components/Admin';
 
+
 function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+    <>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <TopBar />
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+      <HelpChatbox />
+    </>
   );
 }
 

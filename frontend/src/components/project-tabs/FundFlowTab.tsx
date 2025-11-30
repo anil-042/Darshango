@@ -29,6 +29,7 @@ import {
 import { api } from '../../services/api';
 import { Transaction } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { locationData } from '../../data/locations';
 
 interface FundFlowTabProps {
   projectId: string;
@@ -42,14 +43,16 @@ export function FundFlowTab({ projectId }: FundFlowTabProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
-    type: 'Ministry Allocation',
-    fromLevel: 'Ministry',
-    toLevel: 'State',
+    type: 'Utilization',
+    fromLevel: 'Agency',
+    toLevel: 'Ground',
     amount: '',
     utrNumber: '',
     date: new Date().toISOString().split('T')[0],
     status: 'Pending',
-    description: ''
+    description: '',
+    state: '',
+    district: ''
   });
 
   useEffect(() => {
@@ -112,21 +115,25 @@ export function FundFlowTab({ projectId }: FundFlowTabProps) {
         status: formData.status as any,
         description: formData.description,
         proofFile: proofFileUrl,
-        createdBy: user?.id
+        createdBy: user?.id,
+        state: formData.state,
+        district: formData.district
       };
 
       await api.transactions.create(newTxn);
       setIsAddSheetOpen(false);
       fetchTransactions();
       setFormData({
-        type: 'Ministry Allocation',
-        fromLevel: 'Ministry',
-        toLevel: 'State',
+        type: 'Utilization',
+        fromLevel: 'Agency',
+        toLevel: 'Ground',
         amount: '',
         utrNumber: '',
         date: new Date().toISOString().split('T')[0],
         status: 'Pending',
-        description: ''
+        description: '',
+        state: '',
+        district: ''
       });
       setSelectedFile(null);
       toast.success('Transaction recorded successfully');
@@ -212,51 +219,7 @@ export function FundFlowTab({ projectId }: FundFlowTabProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">From Level</label>
-                      <Select
-                        value={formData.fromLevel}
-                        onValueChange={(val: string) => {
-                          let nextLevel = '';
-                          let txType = '';
-
-                          switch (val) {
-                            case 'Ministry':
-                              nextLevel = 'State';
-                              txType = 'Ministry Allocation';
-                              break;
-                            case 'State':
-                              nextLevel = 'District';
-                              txType = 'State Transfer';
-                              break;
-                            case 'District':
-                              nextLevel = 'Agency';
-                              txType = 'District Allocation';
-                              break;
-                            case 'Agency':
-                              nextLevel = 'Ground';
-                              txType = 'Utilization'; // Assuming Agency -> Ground is Utilization
-                              break;
-                            default:
-                              nextLevel = '';
-                          }
-
-                          setFormData({
-                            ...formData,
-                            fromLevel: val,
-                            toLevel: nextLevel,
-                            type: txType
-                          });
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Ministry">Ministry</SelectItem>
-                          <SelectItem value="State">State</SelectItem>
-                          <SelectItem value="District">District</SelectItem>
-                          <SelectItem value="Agency">Agency</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input value="Agency" disabled className="bg-gray-100" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">To Level</label>
@@ -267,6 +230,46 @@ export function FundFlowTab({ projectId }: FundFlowTabProps) {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Transaction Type</label>
                     <Input value={formData.type} disabled className="bg-gray-100" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">State</label>
+                      <Select
+                        value={formData.state}
+                        onValueChange={(val) => setFormData({ ...formData, state: val, district: '' })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select State" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.keys(locationData).map((state) => (
+                            <SelectItem key={state} value={state}>
+                              {state}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">District</label>
+                      <Select
+                        value={formData.district}
+                        onValueChange={(val) => setFormData({ ...formData, district: val })}
+                        disabled={!formData.state}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select District" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {formData.state && locationData[formData.state]?.map((district) => (
+                            <SelectItem key={district} value={district}>
+                              {district}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -380,7 +383,7 @@ export function FundFlowTab({ projectId }: FundFlowTabProps) {
               ) : (
                 transactions.map((txn) => (
                   <TableRow key={txn.id}>
-                    <TableCell className="text-gray-600">{txn.date}</TableCell>
+                    <TableCell className="text-gray-600">{txn.date?.split('T')[0]}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{txn.type}</Badge>
                     </TableCell>

@@ -11,60 +11,79 @@ import {
 import { MapView } from './MapView';
 import { RecentProjects } from './RecentProjects';
 import { AlertsFeed } from './AlertsFeed';
-
-const kpiData = [
-  {
-    title: 'Total Projects',
-    value: '2,847',
-    icon: FolderKanban,
-    color: 'bg-blue-50 text-blue-600',
-    iconBg: 'bg-blue-100',
-    link: '/projects'
-  },
-  {
-    title: 'Ongoing Projects',
-    value: '1,523',
-    icon: PlayCircle,
-    color: 'bg-green-50 text-green-600',
-    iconBg: 'bg-green-100',
-    link: '/projects?status=In Progress'
-  },
-  {
-    title: 'Funds Released',
-    value: '₹8,245 Cr',
-    icon: DollarSign,
-    color: 'bg-purple-50 text-purple-600',
-    iconBg: 'bg-purple-100',
-    link: '/fund-flow'
-  },
-  {
-    title: 'Funds Utilized',
-    value: '₹6,892 Cr',
-    icon: TrendingUp,
-    color: 'bg-indigo-50 text-indigo-600',
-    iconBg: 'bg-indigo-100',
-    link: '/fund-flow'
-  },
-  {
-    title: 'Avg Completion %',
-    value: '68.5%',
-    icon: Percent,
-    color: 'bg-cyan-50 text-cyan-600',
-    iconBg: 'bg-cyan-100',
-    link: '/projects'
-  },
-  {
-    title: 'Delayed Projects',
-    value: '324',
-    icon: AlertCircle,
-    color: 'bg-orange-50 text-orange-600',
-    iconBg: 'bg-orange-100',
-    link: '/projects?status=Delayed'
-  },
-];
+import { useEffect, useState } from 'react';
+import { dashboardService, DashboardStats } from '../services/dashboardService';
 
 export function HomeDashboard() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await dashboardService.getStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const kpiData = [
+    {
+      title: 'Total Projects',
+      value: loading ? '...' : stats?.totalProjects.toLocaleString() || '0',
+      icon: FolderKanban,
+      color: 'bg-blue-50 text-blue-600',
+      iconBg: 'bg-blue-100',
+      link: '/projects'
+    },
+    {
+      title: 'Ongoing Projects',
+      value: loading ? '...' : stats?.statusCounts.ongoing.toLocaleString() || '0',
+      icon: PlayCircle,
+      color: 'bg-green-50 text-green-600',
+      iconBg: 'bg-green-100',
+      link: '/projects?status=In Progress'
+    },
+    {
+      title: 'Funds Released',
+      value: loading ? '...' : `₹${(stats?.funds.released || 0).toLocaleString()} Cr`,
+      icon: DollarSign,
+      color: 'bg-purple-50 text-purple-600',
+      iconBg: 'bg-purple-100',
+      link: '/fund-flow'
+    },
+    {
+      title: 'Funds Utilized',
+      value: loading ? '...' : `₹${(stats?.funds.utilized || 0).toLocaleString()} Cr`,
+      icon: TrendingUp,
+      color: 'bg-indigo-50 text-indigo-600',
+      iconBg: 'bg-indigo-100',
+      link: '/fund-flow'
+    },
+    {
+      title: 'Avg Completion %',
+      value: loading ? '...' : `${(stats?.funds.utilizationPercentage || 0).toFixed(1)}%`,
+      icon: Percent,
+      color: 'bg-cyan-50 text-cyan-600',
+      iconBg: 'bg-cyan-100',
+      link: '/projects'
+    },
+    {
+      title: 'Delayed Projects',
+      value: loading ? '...' : stats?.statusCounts.delayed.toLocaleString() || '0',
+      icon: AlertCircle,
+      color: 'bg-orange-50 text-orange-600',
+      iconBg: 'bg-orange-100',
+      link: '/projects?status=Delayed'
+    },
+  ];
 
   return (
     <div className="p-6 space-y-6">

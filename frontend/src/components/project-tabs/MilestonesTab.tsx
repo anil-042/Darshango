@@ -19,6 +19,12 @@ import {
   SelectValue,
 } from '../ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -135,6 +141,8 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
   const getIcon = (status: string) => {
     switch (status) {
       case 'Completed': return CheckCircle;
+      case 'Nearly Completed': return CheckCircle;
+      case 'Partially Completed': return Clock;
       case 'In Progress': return Clock;
       default: return Circle;
     }
@@ -143,6 +151,8 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
   const getIconColor = (status: string) => {
     switch (status) {
       case 'Completed': return 'text-green-600';
+      case 'Nearly Completed': return 'text-green-500';
+      case 'Partially Completed': return 'text-blue-500';
       case 'In Progress': return 'text-blue-600';
       default: return 'text-gray-400';
     }
@@ -151,6 +161,8 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed': return 'bg-green-100 text-green-700';
+      case 'Nearly Completed': return 'bg-green-50 text-green-600';
+      case 'Partially Completed': return 'bg-blue-50 text-blue-600';
       case 'In Progress': return 'bg-blue-100 text-blue-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -205,28 +217,41 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
                   <label className="text-sm font-medium">Status</label>
                   <Select
                     value={formData.status}
-                    onValueChange={(val: string) => setFormData({ ...formData, status: val as any })}
+                    onValueChange={(val: string) => {
+                      // Auto-set progress based on status
+                      let progress = 0;
+                      switch (val) {
+                        case 'Pending':
+                          progress = 0;
+                          break;
+                        case 'In Progress':
+                          progress = 40;
+                          break;
+                        case 'Partially Completed':
+                          progress = 60;
+                          break;
+                        case 'Nearly Completed':
+                          progress = 80;
+                          break;
+                        case 'Completed':
+                          progress = 100;
+                          break;
+                      }
+                      setFormData({ ...formData, status: val as any, progress });
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="Pending">Pending (0%)</SelectItem>
+                      <SelectItem value="In Progress">In Progress (40%)</SelectItem>
+                      <SelectItem value="Partially Completed">Partially Completed (60%)</SelectItem>
+                      <SelectItem value="Nearly Completed">Nearly Completed (80%)</SelectItem>
+                      <SelectItem value="Completed">Completed (100%)</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Progress (%)</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.progress}
-                    onChange={(e) => setFormData({ ...formData, progress: Number(e.target.value) })}
-                    required
-                  />
+                  <p className="text-xs text-gray-500">Progress is automatically set based on status</p>
                 </div>
                 <Button type="submit" className="w-full">
                   {editingMilestone ? 'Update Milestone' : 'Create Milestone'}
@@ -270,14 +295,95 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
                           <Badge className={getStatusColor(milestone.status)}>{milestone.status}</Badge>
                           {canEdit && (
                             <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEditSheet(milestone)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Pencil className="w-4 h-4 text-gray-500 hover:text-blue-600" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs"
+                                  >
+                                    Change Status
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      try {
+                                        await api.milestones.update(projectId, milestone.id, {
+                                          status: 'Pending',
+                                          progress: 0
+                                        });
+                                        fetchMilestones();
+                                      } catch (error) {
+                                        console.error('Failed to update status', error);
+                                      }
+                                    }}
+                                  >
+                                    Pending (0%)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      try {
+                                        await api.milestones.update(projectId, milestone.id, {
+                                          status: 'In Progress',
+                                          progress: 40
+                                        });
+                                        fetchMilestones();
+                                      } catch (error) {
+                                        console.error('Failed to update status', error);
+                                      }
+                                    }}
+                                  >
+                                    In Progress (40%)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      try {
+                                        await api.milestones.update(projectId, milestone.id, {
+                                          status: 'Partially Completed',
+                                          progress: 60
+                                        });
+                                        fetchMilestones();
+                                      } catch (error) {
+                                        console.error('Failed to update status', error);
+                                      }
+                                    }}
+                                  >
+                                    Partially Completed (60%)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      try {
+                                        await api.milestones.update(projectId, milestone.id, {
+                                          status: 'Nearly Completed',
+                                          progress: 80
+                                        });
+                                        fetchMilestones();
+                                      } catch (error) {
+                                        console.error('Failed to update status', error);
+                                      }
+                                    }}
+                                  >
+                                    Nearly Completed (80%)
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      try {
+                                        await api.milestones.update(projectId, milestone.id, {
+                                          status: 'Completed',
+                                          progress: 100,
+                                          completionDate: new Date().toISOString().split('T')[0]
+                                        });
+                                        fetchMilestones();
+                                      } catch (error) {
+                                        console.error('Failed to update status', error);
+                                      }
+                                    }}
+                                  >
+                                    Completed (100%)
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -309,7 +415,7 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
                           <p className="text-gray-500">Due Date</p>
                           <div className="flex items-center gap-1 text-gray-900">
                             <Calendar className="w-3 h-3" />
-                            {milestone.dueDate}
+                            {milestone.dueDate?.split('T')[0]}
                           </div>
                         </div>
                         {milestone.completionDate && (
@@ -317,7 +423,7 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
                             <p className="text-gray-500">Completed On</p>
                             <div className="flex items-center gap-1 text-gray-900">
                               <CheckCircle className="w-3 h-3" />
-                              {milestone.completionDate}
+                              {milestone.completionDate?.split('T')[0]}
                             </div>
                           </div>
                         )}

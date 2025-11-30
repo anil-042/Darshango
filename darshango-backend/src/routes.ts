@@ -12,6 +12,7 @@ import reportRoutes from './modules/reports/report.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import meetingRoutes from './modules/meetings/meeting.routes';
 import messageRoutes from './modules/messages/message.routes';
+import chatRoutes from './modules/chat/chat.routes';
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.use('/projects/:id/funds', fundRoutes);
 router.use('/projects/:id/inspections', inspectionRoutes);
 router.use('/projects/:id/documents', documentRoutes);
 router.use('/projects/:projectId/messages', messageRoutes);
+router.use('/chat', chatRoutes);
 
 export default router;

@@ -3,6 +3,7 @@ import { supabase } from '../../config/supabase';
 export const createProject = async (projectData: any) => {
     // Map camelCase to snake_case
     const dbProject = {
+        project_id: projectData.projectId,
         title: projectData.title,
         component: projectData.component,
         implementing_agency_id: projectData.implementingAgencyId,
@@ -74,6 +75,7 @@ export const updateProject = async (id: string, updateData: any) => {
         updated_at: new Date().toISOString()
     };
 
+    if (updateData.projectId) dbUpdate.project_id = updateData.projectId;
     if (updateData.title) dbUpdate.title = updateData.title;
     if (updateData.component) dbUpdate.component = updateData.component;
     if (updateData.implementingAgencyId) dbUpdate.implementing_agency_id = updateData.implementingAgencyId;
@@ -170,6 +172,7 @@ export const recalculateProjectStats = async (projectId: string) => {
 // Helper to map DB result to camelCase
 const mapProject = (p: any) => ({
     id: p.id,
+    projectId: p.project_id,
     title: p.title,
     component: p.component,
     implementingAgencyId: p.implementing_agency_id,

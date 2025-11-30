@@ -6,14 +6,12 @@ import { api } from '../services/api';
 import { Project } from '../types';
 import { useNavigate } from 'react-router-dom';
 
-// Fix for default marker icon
-const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
-const iconRetinaUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png';
-const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
+// Fix for default marker icon - using RED marker
+const iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png';
+const shadowUrl = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png';
 
 let DefaultIcon = L.icon({
   iconUrl: iconUrl,
-  iconRetinaUrl: iconRetinaUrl,
   shadowUrl: shadowUrl,
   iconSize: [25, 41],
   iconAnchor: [12, 41],

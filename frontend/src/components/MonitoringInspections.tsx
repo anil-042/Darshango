@@ -258,7 +258,7 @@ export function MonitoringInspections() {
                         <TableCell>{project?.state || '-'}</TableCell>
                         <TableCell>{project?.district || '-'}</TableCell>
                         <TableCell>{inspection.inspectorId}</TableCell>
-                        <TableCell className="text-gray-600">{inspection.date}</TableCell>
+                        <TableCell className="text-gray-600">{inspection.date?.split('T')[0]}</TableCell>
                         <TableCell>
                           <Badge className={
                             inspection.status === 'Completed' ? 'bg-green-100 text-green-700' :

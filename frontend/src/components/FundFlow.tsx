@@ -657,9 +657,9 @@ export function FundFlow() {
                 ) : (
                   filteredTransactions.map((txn) => (
                     <TableRow key={txn.id}>
-                      <TableCell>{txn.date}</TableCell>
+                      <TableCell>{txn.date?.split('T')[0]}</TableCell>
                       <TableCell><Badge variant="outline">{txn.type}</Badge></TableCell>
-                      <TableCell className="text-sm text-gray-600">{txn.fromLevel} → {txn.toLevel}</TableCell>
+                      <TableCell className="text-gray-600">{txn.fromLevel} → {txn.toLevel}</TableCell>
                       <TableCell className="font-medium">{formatCurrency(txn.amount)}</TableCell>
                       <TableCell className="font-mono text-xs">{txn.utrNumber || '-'}</TableCell>
                       <TableCell>
@@ -724,7 +724,7 @@ export function FundFlow() {
               </div>
               <div>
                 <p className="text-gray-500">Date</p>
-                <p className="font-medium">{txnToView?.date}</p>
+                <p className="font-medium">{txnToView?.date?.split('T')[0]}</p>
               </div>
               <div>
                 <p className="text-gray-500">Amount</p>

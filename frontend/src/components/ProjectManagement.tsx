@@ -51,6 +51,7 @@ import {
   AlertDialogTitle,
 } from './ui/alert-dialog';
 import { locationData } from '../data/locations';
+import { districtCoordinates, stateCoordinates } from '../data/districtCoordinates';
 
 interface ProjectManagementProps {
   component?: 'Adarsh Gram' | 'GIA' | 'Hostel';
@@ -78,6 +79,30 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component, 
 
   const handleStateChange = (value: string) => {
     setFormData({ ...formData, state: value, district: '' });
+  };
+
+  const handleDistrictChange = (value: string) => {
+    // 1. Try specific district coordinates
+    let coords = districtCoordinates[value];
+
+    // 2. Fallback to State coordinates if district not found
+    if (!coords && formData.state) {
+      coords = stateCoordinates[formData.state];
+    }
+
+    // 3. Fallback to default if neither found
+    if (!coords) {
+      coords = districtCoordinates['Default'];
+    }
+
+    setFormData({
+      ...formData,
+      district: value,
+      location: {
+        lat: coords.lat,
+        lng: coords.lng
+      }
+    });
   };
 
   return (
@@ -224,7 +249,7 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component, 
           <label className="text-sm font-medium">District</label>
           <Select
             value={formData.district}
-            onValueChange={(val) => setFormData({ ...formData, district: val })}
+            onValueChange={handleDistrictChange}
             disabled={!formData.state}
           >
             <SelectTrigger>
@@ -241,7 +266,7 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component, 
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Est. Cost (₹)</label>
           <Input
@@ -251,21 +276,35 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component, 
             required
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Progress (%)</label>
+          <label className="text-sm font-medium">Latitude</label>
           <Input
             type="number"
-            min="0"
-            max="100"
-            value={formData.progress}
-            onChange={(e) => setFormData({ ...formData, progress: Number(e.target.value) })}
-            required
+            value={formData.location?.lat || ''}
+            readOnly
+            className="bg-gray-50"
+            placeholder="Auto-filled"
           />
+          <p className="text-xs text-gray-500">Auto-filled based on District</p>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Longitude</label>
+          <Input
+            type="number"
+            value={formData.location?.lng || ''}
+            readOnly
+            className="bg-gray-50"
+            placeholder="Auto-filled"
+          />
+          <p className="text-xs text-gray-500">Auto-filled based on District</p>
         </div>
       </div>
 
       <Button type="submit" className="w-full">{submitLabel}</Button>
-    </form>
+    </form >
   );
 };
 
@@ -315,7 +354,8 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
     implementingAgencyId: '',
     executingAgencyId: '',
     startDate: '',
-    endDate: ''
+    endDate: '',
+    location: { lat: 0, lng: 0 }
   });
 
   const fetchAgencies = async () => {
@@ -419,6 +459,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
     const matchesComponentProp = !component || project.component === component;
     const matchesComponentFilter = componentFilter === 'all' || project.component === componentFilter;
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.projectId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
     const matchesState = stateFilter === 'all' || project.state === stateFilter;
@@ -569,7 +610,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                         {project.component}
                       </Badge>
-                      <span className="text-xs text-gray-500 font-mono">{project.id}</span>
+                      <span className="text-xs text-gray-500 font-mono">{project.projectId || 'N/A'}</span>
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-1">{project.title}</h3>
                     <div className="flex flex-wrap gap-4 text-sm text-gray-500">
@@ -583,7 +624,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {project.startDate}
+                        {project.startDate?.split('T')[0]}
                       </div>
                     </div>
                   </div>
