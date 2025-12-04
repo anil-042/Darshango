@@ -1,0 +1,338 @@
+{
+  "Admin": {
+    "Dashboard": {
+      "View": true,
+      "Export": true
+    },
+    "Agencies": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Delete": true
+    },
+    "Projects": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Delete": true,
+      "Approve": true
+    },
+    "Fund Flow": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Approve": true
+    },
+    "Monitoring": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Submit": true
+    },
+    "Communication": {
+      "View": true,
+      "Create": true
+    },
+    "Documents": {
+      "View": true,
+      "Upload": true,
+      "Download": true,
+      "Delete": true
+    },
+    "Alerts": {
+      "View": true,
+      "Create": true,
+      "Resolve": true
+    },
+    "Reports": {
+      "View": true,
+      "Generate": true,
+      "Export": true
+    },
+    "Admin": {
+      "View": true,
+      "Manage Users": true,
+      "Manage Roles": true
+    }
+  },
+  "StateNodalOfficer": {
+    "Dashboard": {
+      "View": true,
+      "Export": true
+    },
+    "Agencies": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Delete": false
+    },
+    "Projects": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Delete": false,
+      "Approve": true
+    },
+    "Fund Flow": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Approve": true
+    },
+    "Monitoring": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Submit": false
+    },
+    "Communication": {
+      "View": true,
+      "Create": true
+    },
+    "Documents": {
+      "View": true,
+      "Upload": true,
+      "Download": true,
+      "Delete": false
+    },
+    "Alerts": {
+      "View": true,
+      "Create": true,
+      "Resolve": true
+    },
+    "Reports": {
+      "View": true,
+      "Generate": true,
+      "Export": true
+    },
+    "Admin": {
+      "View": false,
+      "Manage Users": false,
+      "Manage Roles": false
+    }
+  },
+  "DistrictOfficer": {
+    "Dashboard": {
+      "View": true,
+      "Export": false
+    },
+    "Agencies": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Delete": false
+    },
+    "Projects": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Delete": false,
+      "Approve": false
+    },
+    "Fund Flow": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Approve": false
+    },
+    "Monitoring": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Submit": true
+    },
+    "Communication": {
+      "View": true,
+      "Create": true
+    },
+    "Documents": {
+      "View": true,
+      "Upload": true,
+      "Download": true,
+      "Delete": false
+    },
+    "Alerts": {
+      "View": true,
+      "Create": true,
+      "Resolve": false
+    },
+    "Reports": {
+      "View": true,
+      "Generate": true,
+      "Export": false
+    },
+    "Admin": {
+      "View": false,
+      "Manage Users": false,
+      "Manage Roles": false
+    }
+  },
+  "AgencyAdmin": {
+    "Dashboard": {
+      "View": true,
+      "Export": false
+    },
+    "Agencies": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Delete": true
+    },
+    "Projects": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Delete": false,
+      "Approve": false
+    },
+    "Fund Flow": {
+      "View": true,
+      "Create": true,
+      "Edit": false,
+      "Approve": false
+    },
+    "Monitoring": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Submit": true
+    },
+    "Communication": {
+      "View": true,
+      "Create": true
+    },
+    "Documents": {
+      "View": true,
+      "Upload": true,
+      "Download": true,
+      "Delete": false
+    },
+    "Alerts": {
+      "View": true,
+      "Create": true,
+      "Resolve": false
+    },
+    "Reports": {
+      "View": true,
+      "Generate": false,
+      "Export": false
+    },
+    "Admin": {
+      "View": false,
+      "Manage Users": false,
+      "Manage Roles": false
+    }
+  },
+  "Inspector": {
+    "Dashboard": {
+      "View": false,
+      "Export": false
+    },
+    "Agencies": {
+      "View": false,
+      "Create": false,
+      "Edit": false,
+      "Delete": false
+    },
+    "Projects": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Delete": false,
+      "Approve": false
+    },
+    "Fund Flow": {
+      "View": false,
+      "Create": false,
+      "Edit": false,
+      "Approve": false
+    },
+    "Monitoring": {
+      "View": true,
+      "Create": true,
+      "Edit": true,
+      "Submit": true
+    },
+    "Communication": {
+      "View": true,
+      "Create": true
+    },
+    "Documents": {
+      "View": true,
+      "Upload": true,
+      "Download": false,
+      "Delete": false
+    },
+    "Alerts": {
+      "View": true,
+      "Create": true,
+      "Resolve": false
+    },
+    "Reports": {
+      "View": false,
+      "Generate": false,
+      "Export": false
+    },
+    "Admin": {
+      "View": false,
+      "Manage Users": false,
+      "Manage Roles": false
+    }
+  },
+  "Viewer": {
+    "Dashboard": {
+      "View": true,
+      "Export": false
+    },
+    "Agencies": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Delete": false
+    },
+    "Projects": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Delete": false,
+      "Approve": false
+    },
+    "Fund Flow": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Approve": false
+    },
+    "Monitoring": {
+      "View": true,
+      "Create": false,
+      "Edit": false,
+      "Submit": false
+    },
+    "Communication": {
+      "View": false,
+      "Create": false
+    },
+    "Documents": {
+      "View": true,
+      "Upload": false,
+      "Download": true,
+      "Delete": false
+    },
+    "Alerts": {
+      "View": true,
+      "Create": false,
+      "Resolve": false
+    },
+    "Reports": {
+      "View": true,
+      "Generate": false,
+      "Export": false
+    },
+    "Admin": {
+      "View": false,
+      "Manage Users": false,
+      "Manage Roles": false
+    }
+  }
+}

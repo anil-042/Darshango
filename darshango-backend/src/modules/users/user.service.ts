@@ -2,7 +2,7 @@ import { supabase } from '../../config/supabase';
 import bcrypt from 'bcryptjs';
 
 export const getAllUsers = async (filters: any = {}) => {
-    let query = supabase.from('users').select('*');
+    let query: any = supabase.from('users').select('*').neq('status', 'Deleted'); // Exclude deleted users
 
     if (filters.role) query = query.eq('role', filters.role);
     if (filters.agencyId) query = query.eq('agency_id', filters.agencyId);
@@ -108,9 +108,10 @@ export const updateUser = async (id: string, updateData: any) => {
 };
 
 export const deleteUser = async (id: string) => {
+    // Soft delete to avoid foreign key constraints
     const { error } = await supabase
         .from('users')
-        .delete()
+        .update({ status: 'Deleted' })
         .eq('id', id);
 
     if (error) throw new Error(error.message);

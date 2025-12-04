@@ -183,7 +183,7 @@ export const api = {
             return response.data.data;
         },
         update: async (id: string, updates: Partial<User>): Promise<User> => {
-            const response = await axiosInstance.put(`/users/${id}`, updates);
+            const response = await axiosInstance.patch(`/users/${id}`, updates);
             return response.data.data;
         },
         delete: async (id: string): Promise<void> => {
@@ -243,6 +243,18 @@ export const api = {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+            return response.data.data;
+        }
+    },
+
+    // PERMISSIONS
+    permissions: {
+        get: async (): Promise<any> => {
+            const response = await axiosInstance.get('/permissions');
+            return response.data.data;
+        },
+        update: async (permissions: any): Promise<any> => {
+            const response = await axiosInstance.post('/permissions', permissions);
             return response.data.data;
         }
     }

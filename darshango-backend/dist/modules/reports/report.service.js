@@ -10,44 +10,60 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateUCReport = exports.generateFundReport = exports.generateProjectReport = void 0;
-const firebase_1 = require("../../config/firebase");
+const supabase_1 = require("../../config/supabase");
 const generateProjectReport = (filters) => __awaiter(void 0, void 0, void 0, function* () {
-    let query = firebase_1.db.collection('projects');
+    let query = supabase_1.supabase.from('projects').select('*');
     if (filters.state)
-        query = query.where('state', '==', filters.state);
+        query = query.eq('state', filters.state);
     if (filters.district)
-        query = query.where('district', '==', filters.district);
+        query = query.eq('district', filters.district);
     if (filters.status)
-        query = query.where('status', '==', filters.status);
-    const snapshot = yield query.get();
-    return snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            title: data.title,
-            component: data.component,
-            agency: data.implementingAgencyId, // Should ideally fetch agency name
-            status: data.status,
-            progress: data.progress,
-            fundsReleased: data.totalFundsReleased,
-            fundsUtilized: data.totalFundsUtilized
-        };
-    });
+        query = query.eq('status', filters.status);
+    const { data, error } = yield query;
+    if (error)
+        throw new Error(error.message);
+    return data.map((p) => ({
+        id: p.id,
+        title: p.title,
+        component: p.component,
+        agency: p.implementing_agency_id,
+        status: p.status,
+        progress: p.progress,
+        fundsReleased: p.total_funds_released,
+        fundsUtilized: p.total_funds_utilized
+    }));
 });
 exports.generateProjectReport = generateProjectReport;
 const generateFundReport = () => __awaiter(void 0, void 0, void 0, function* () {
-    const snapshot = yield firebase_1.db.collectionGroup('funds').orderBy('date', 'desc').get();
-    return snapshot.docs.map(doc => (Object.assign({ id: doc.id }, doc.data())));
+    const { data, error } = yield supabase_1.supabase
+        .from('funds')
+        .select('*')
+        .order('date', { ascending: false });
+    if (error)
+        throw new Error(error.message);
+    return data.map((f) => ({
+        id: f.id,
+        projectId: f.project_id,
+        type: f.type,
+        amount: f.amount,
+        date: f.date,
+        status: f.status,
+        ucStatus: f.uc_status
+    }));
 });
 exports.generateFundReport = generateFundReport;
 const generateUCReport = () => __awaiter(void 0, void 0, void 0, function* () {
-    // Fetch projects with pending UCs
-    const snapshot = yield firebase_1.db.collection('projects').where('pendingUCs', '>', 0).get();
-    return snapshot.docs.map(doc => ({
-        projectId: doc.id,
-        projectTitle: doc.data().title,
-        pendingUCs: doc.data().pendingUCs,
-        lastUCSubmitted: doc.data().lastUCSubmitted
+    const { data, error } = yield supabase_1.supabase
+        .from('projects')
+        .select('id, title, pending_ucs')
+        .gt('pending_ucs', 0);
+    if (error)
+        throw new Error(error.message);
+    return data.map((p) => ({
+        projectId: p.id,
+        projectTitle: p.title,
+        pendingUCs: p.pending_ucs,
+        // lastUCSubmitted: p.last_uc_submitted // Field not in schema yet, omitting or assuming it might be added later
     }));
 });
 exports.generateUCReport = generateUCReport;

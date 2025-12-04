@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.protect = void 0;
 const jwt_1 = require("../utils/jwt");
-const firebase_1 = require("../config/firebase");
+const supabase_1 = require("../config/supabase");
 const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -25,11 +25,15 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         if (!decoded) {
             return res.status(401).json({ success: false, message: 'Invalid token' });
         }
-        const userDoc = yield firebase_1.db.collection('users').doc(decoded.id).get();
-        if (!userDoc.exists) {
+        const { data: user, error } = yield supabase_1.supabase
+            .from('users')
+            .select('*')
+            .eq('id', decoded.id)
+            .single();
+        if (error || !user) {
             return res.status(401).json({ success: false, message: 'User no longer exists' });
         }
-        req.user = Object.assign({ id: userDoc.id }, userDoc.data());
+        req.user = user;
         next();
     }
     catch (error) {

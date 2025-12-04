@@ -41,6 +41,7 @@ const router = (0, express_1.Router)();
 router.use(authMiddleware_1.protect); // Protect all routes
 router.get('/', (0, roleMiddleware_1.authorize)('Admin', 'StateNodalOfficer'), userController.getUsers);
 router.get('/:id', userController.getUser);
+router.post('/', (0, roleMiddleware_1.authorize)('Admin'), userController.createUser);
 router.patch('/:id', (0, roleMiddleware_1.authorize)('Admin'), userController.updateUser);
 router.delete('/:id', (0, roleMiddleware_1.authorize)('Admin'), userController.deleteUser);
 exports.default = router;

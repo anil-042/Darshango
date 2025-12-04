@@ -42,7 +42,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.getUser = exports.getUsers = void 0;
+exports.deleteUser = exports.updateUser = exports.createUser = exports.getUser = exports.getUsers = void 0;
 const userService = __importStar(require("./user.service"));
 const response_1 = require("../../utils/response");
 const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -68,6 +68,16 @@ const getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getUser = getUser;
+const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield userService.createUser(req.body);
+        (0, response_1.successResponse)(res, user, 'User created successfully');
+    }
+    catch (error) {
+        (0, response_1.errorResponse)(res, error.message);
+    }
+});
+exports.createUser = createUser;
 const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user = yield userService.updateUser(req.params.id, req.body);
@@ -80,10 +90,12 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.updateUser = updateUser;
 const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log(`[UserController] Deleting user with ID: ${req.params.id}`);
         yield userService.deleteUser(req.params.id);
         (0, response_1.successResponse)(res, null, 'User deleted successfully');
     }
     catch (error) {
+        console.error(`[UserController] Failed to delete user: ${error.message}`);
         (0, response_1.errorResponse)(res, error.message);
     }
 });

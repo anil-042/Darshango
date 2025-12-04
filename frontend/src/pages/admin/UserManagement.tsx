@@ -40,6 +40,7 @@ export default function UserManagement() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterRole, setFilterRole] = useState('all');
+    const [filterStatus, setFilterStatus] = useState('all');
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
 
     // Pagination State
@@ -109,9 +110,10 @@ export default function UserManagement() {
                 (user.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                 (user.email?.toLowerCase() || '').includes(searchQuery.toLowerCase());
             const matchesRole = filterRole === 'all' || user.role === filterRole;
-            return matchesSearch && matchesRole;
+            const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
+            return matchesSearch && matchesRole && matchesStatus;
         });
-    }, [users, searchQuery, filterRole]);
+    }, [users, searchQuery, filterRole, filterStatus]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -123,7 +125,7 @@ export default function UserManagement() {
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchQuery, filterRole]);
+    }, [searchQuery, filterRole, filterStatus]);
 
     const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
@@ -139,7 +141,9 @@ export default function UserManagement() {
             // Optimistic update: remove user from local state immediately
             setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete));
 
-            alert('User deleted successfully');
+            // alert('User deleted successfully');
+            setSuccessMessage('User deleted successfully');
+            setTimeout(() => setSuccessMessage(null), 3000);
             setUserToDelete(null); // Close dialog
         } catch (error) {
             console.error('Failed to delete user', error);
@@ -152,12 +156,22 @@ export default function UserManagement() {
         }
     };
 
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    // ... (existing code)
+
     return (
         <div className="p-6 space-y-6">
             <div>
                 <h1 className="text-gray-900 mb-1">User Management</h1>
                 <p className="text-gray-500">Manage system users, roles, and access approvals</p>
             </div>
+
+            {successMessage && (
+                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                    <span className="block sm:inline">{successMessage}</span>
+                </div>
+            )}
 
             <Card>
                 <CardHeader>
@@ -199,9 +213,20 @@ export default function UserManagement() {
                                 <SelectItem value="Admin">Admin</SelectItem>
                                 <SelectItem value="StateNodalOfficer">State Nodal Officer</SelectItem>
                                 <SelectItem value="DistrictOfficer">District Officer</SelectItem>
-                                <SelectItem value="AgencyAdmin">Agency Admin</SelectItem>
+                                <SelectItem value="AgencyAdmin">Agency Manager</SelectItem>
                                 <SelectItem value="Inspector">Inspector</SelectItem>
                                 <SelectItem value="Viewer">Viewer</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select value={filterStatus} onValueChange={setFilterStatus}>
+                            <SelectTrigger className="w-[200px]">
+                                <SelectValue placeholder="Filter by Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="Active">Active</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Inactive">Inactive</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -236,7 +261,7 @@ export default function UserManagement() {
                                             <TableCell className="font-medium">{user.name}</TableCell>
                                             <TableCell>{user.email}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline">{user.role}</Badge>
+                                                <Badge variant="outline">{user.role === 'AgencyAdmin' ? 'Agency Manager' : user.role}</Badge>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge className={
@@ -271,15 +296,17 @@ export default function UserManagement() {
                                                             </Button>
                                                         </>
                                                     )}
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                                                        onClick={() => setUserToDelete(user.id)}
-                                                    >
-                                                        <Trash2 className="w-4 h-4 mr-1" />
-                                                        Delete
-                                                    </Button>
+                                                    {user.role !== 'Admin' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                                            onClick={() => setUserToDelete(user.id)}
+                                                        >
+                                                            <Trash2 className="w-4 h-4 mr-1" />
+                                                            Delete
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -318,7 +345,7 @@ export default function UserManagement() {
                 </CardContent>
             </Card>
 
-            <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+            <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirm User Deletion</AlertDialogTitle>
@@ -328,16 +355,17 @@ export default function UserManagement() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
+                        <button
                             onClick={(e) => {
                                 e.preventDefault();
                                 handleDelete();
                             }}
                             disabled={isDeleting}
-                            className="bg-red-600 hover:bg-red-700 text-white"
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-red-600 text-white hover:bg-red-700 h-9 px-4 py-2"
+                            style={{ backgroundColor: '#dc2626', color: 'white', marginLeft: '8px' }}
                         >
                             {isDeleting ? 'Deleting...' : 'Delete User'}
-                        </AlertDialogAction>
+                        </button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

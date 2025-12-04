@@ -17,7 +17,7 @@ import { FundFlow } from './components/FundFlow';
 import { HelpChatbox } from './components/HelpChatbox';
 import { MonitoringInspections } from './components/MonitoringInspections';
 import { InspectionDetails } from './components/InspectionDetails';
-import { DocumentRepository } from './components/DocumentRepository';
+
 import { AlertsEscalations } from './components/AlertsEscalations';
 import { Reports } from './components/Reports';
 import { Communication } from './components/Communication';
@@ -117,11 +117,7 @@ export default function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/documents" element={
-            <ProtectedRoute>
-              <Layout><DocumentRepository /></Layout>
-            </ProtectedRoute>
-          } />
+
 
           <Route path="/alerts" element={
             <ProtectedRoute>

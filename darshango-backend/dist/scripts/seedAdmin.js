@@ -1,37 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -44,60 +11,75 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-const admin = __importStar(require("firebase-admin"));
+const supabase_js_1 = require("@supabase/supabase-js");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-// Initialize Firebase Admin (Copy of config/firebase.ts logic simplified)
-if (!admin.apps.length) {
-    try {
-        admin.initializeApp({
-            credential: admin.credential.cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: (_a = process.env.FIREBASE_PRIVATE_KEY) === null || _a === void 0 ? void 0 : _a.replace(/\\n/g, '\n'),
-            }),
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-        });
-        console.log('Firebase Initialized');
-    }
-    catch (error) {
-        console.error('Firebase Init Failed:', error);
-        process.exit(1);
-    }
+const path_1 = __importDefault(require("path"));
+// Load env from the root directory
+dotenv_1.default.config({ path: path_1.default.resolve(__dirname, '../../.env') });
+const supabaseUrl = process.env.SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+console.log('--- Seeding Admin User ---');
+console.log('Reading .env from:', path_1.default.resolve(__dirname, '../../.env'));
+console.log('SUPABASE_URL found:', !!supabaseUrl);
+console.log('SUPABASE_SERVICE_ROLE_KEY found:', !!supabaseKey);
+if (!supabaseUrl || !supabaseKey) {
+    console.error('CRITICAL ERROR: Missing Supabase credentials in .env file.');
+    console.error('Please ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
+    process.exit(1);
 }
-const db = admin.firestore();
+const supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseKey);
 const seedAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
     const email = 'admin@darshango.com';
     const password = 'admin123'; // Default password
     const name = 'Admin User';
     try {
+        console.log(`Checking if user ${email} exists...`);
         // Check if admin exists
-        const userQuery = yield db.collection('users').where('email', '==', email).get();
-        if (!userQuery.empty) {
-            console.log('Admin user already exists.');
+        const { data: existingUser, error: fetchError } = yield supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "The result contains 0 rows"
+            console.error('Error checking existing user:', fetchError.message);
             return;
         }
+        if (existingUser) {
+            console.log('Admin user already exists in the database.');
+            console.log('User ID:', existingUser.id);
+            return;
+        }
+        console.log('User not found. Creating new admin user...');
         // Hash password
         const salt = yield bcryptjs_1.default.genSalt(10);
         const passwordHash = yield bcryptjs_1.default.hash(password, salt);
         const newUser = {
             name,
             email,
-            passwordHash,
+            password_hash: passwordHash,
             role: 'Admin',
             status: 'Active',
-            createdAt: new Date().toISOString(),
+            created_at: new Date().toISOString(),
         };
-        yield db.collection('users').add(newUser);
+        const { data: createdUser, error: insertError } = yield supabase
+            .from('users')
+            .insert([newUser])
+            .select()
+            .single();
+        if (insertError) {
+            console.error('Error inserting admin user:', insertError.message);
+            console.error('Details:', insertError);
+            throw new Error(insertError.message);
+        }
         console.log(`Admin user created successfully!`);
+        console.log(`ID: ${createdUser.id}`);
         console.log(`Email: ${email}`);
         console.log(`Password: ${password}`);
     }
     catch (error) {
-        console.error('Error seeding admin:', error);
+        console.error('Unexpected error seeding admin:', error.message || error);
     }
 });
 seedAdmin().then(() => process.exit(0));

@@ -10,23 +10,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDashboardStats = void 0;
-const firebase_1 = require("../../config/firebase");
+const supabase_1 = require("../../config/supabase");
 const getDashboardStats = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (filters = {}) {
-    // This is a heavy operation, in production we might want to cache this or use counters
-    const projectsSnapshot = yield firebase_1.db.collection('projects').get();
-    const projects = projectsSnapshot.docs.map(doc => doc.data());
+    // Fetch all projects with necessary fields
+    const { data: projects, error } = yield supabase_1.supabase
+        .from('projects')
+        .select('status, total_funds_released, total_funds_utilized, pending_ucs, district');
+    if (error)
+        throw new Error(error.message);
     const totalProjects = projects.length;
-    const completedProjects = projects.filter(p => p.status === 'Completed').length;
-    const ongoingProjects = projects.filter(p => p.status === 'In Progress').length;
-    const delayedProjects = projects.filter(p => p.status === 'Delayed').length;
-    const totalFundsReleased = projects.reduce((acc, p) => acc + (p.totalFundsReleased || 0), 0);
-    const totalFundsUtilized = projects.reduce((acc, p) => acc + (p.totalFundsUtilized || 0), 0);
-    const pendingUCs = projects.reduce((acc, p) => acc + (p.pendingUCs || 0), 0);
-    const alertsSnapshot = yield firebase_1.db.collection('alerts').where('status', 'in', ['Open', 'New', 'In Progress']).get();
-    const activeAlerts = alertsSnapshot.size;
-    // Geo distribution (simple count by district)
+    const completedProjects = projects.filter((p) => p.status === 'Completed').length;
+    const ongoingProjects = projects.filter((p) => p.status === 'In Progress').length;
+    const delayedProjects = projects.filter((p) => p.status === 'Delayed').length;
+    const totalFundsReleased = projects.reduce((acc, p) => acc + (p.total_funds_released || 0), 0);
+    const totalFundsUtilized = projects.reduce((acc, p) => acc + (p.total_funds_utilized || 0), 0);
+    const pendingUCs = projects.reduce((acc, p) => acc + (p.pending_ucs || 0), 0);
+    // Active Alerts
+    const { count: activeAlerts, error: alertError } = yield supabase_1.supabase
+        .from('alerts')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['Open', 'New', 'In Progress']);
+    if (alertError)
+        throw new Error(alertError.message);
+    // Geo distribution
     const districtDistribution = {};
-    projects.forEach(p => {
+    projects.forEach((p) => {
         const district = p.district || 'Unknown';
         districtDistribution[district] = (districtDistribution[district] || 0) + 1;
     });
@@ -44,7 +52,7 @@ const getDashboardStats = (...args_1) => __awaiter(void 0, [...args_1], void 0, 
             utilizationPercentage: totalFundsReleased > 0 ? (totalFundsUtilized / totalFundsReleased) * 100 : 0
         },
         pendingUCs,
-        activeAlerts,
+        activeAlerts: activeAlerts || 0,
         districtDistribution
     };
 });

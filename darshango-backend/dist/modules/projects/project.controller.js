@@ -66,6 +66,7 @@ const getProjects = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         (0, response_1.successResponse)(res, projects, 'Projects fetched successfully');
     }
     catch (error) {
+        console.error("[ProjectController] Error fetching projects:", error);
         (0, response_1.errorResponse)(res, error.message, 500);
     }
 });

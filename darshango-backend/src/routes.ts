@@ -13,6 +13,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import meetingRoutes from './modules/meetings/meeting.routes';
 import messageRoutes from './modules/messages/message.routes';
 import chatRoutes from './modules/chat/chat.routes';
+import permissionRoutes from './modules/permissions/permissions.routes';
 
 const router = Router();
 
@@ -28,6 +29,9 @@ router.use('/inspections', inspectionRoutes); // Global inspections route
 router.use('/documents', documentRoutes); // Global documents route
 router.use('/milestones', milestoneRoutes); // Global milestones route
 router.use('/meetings', meetingRoutes);
+router.use('/permissions', permissionRoutes);
+
+// Nested routes for project sub-resources
 
 // Nested routes for project sub-resources
 router.use('/projects/:id/milestones', milestoneRoutes);

@@ -16,10 +16,9 @@ export function Admin() {
       <Card>
         <CardContent className="p-6">
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="users">User Management</TabsTrigger>
               <TabsTrigger value="roles">Role Management</TabsTrigger>
-              <TabsTrigger value="agencies">Agency Registration</TabsTrigger>
             </TabsList>
 
             <TabsContent value="users" className="mt-6">
@@ -28,10 +27,6 @@ export function Admin() {
 
             <TabsContent value="roles" className="mt-6">
               <RoleManagement />
-            </TabsContent>
-
-            <TabsContent value="agencies" className="mt-6">
-              <AgencyRegistration />
             </TabsContent>
           </Tabs>
         </CardContent>

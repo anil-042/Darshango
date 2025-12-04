@@ -10,41 +10,81 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAutoAlert = exports.updateAlert = exports.getAlerts = exports.createAlert = void 0;
-const firebase_1 = require("../../config/firebase");
+const supabase_1 = require("../../config/supabase");
 const createAlert = (alertData) => __awaiter(void 0, void 0, void 0, function* () {
-    const docRef = yield firebase_1.db.collection('alerts').add(Object.assign(Object.assign({}, alertData), { createdAt: new Date().toISOString(), status: alertData.status || 'Open' }));
-    return Object.assign({ id: docRef.id }, alertData);
+    const dbAlert = {
+        type: alertData.type,
+        project_id: alertData.projectId,
+        priority: alertData.priority,
+        description: alertData.description,
+        status: alertData.status || 'Open',
+        date: alertData.date || new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+    };
+    const { data, error } = yield supabase_1.supabase
+        .from('alerts')
+        .insert([dbAlert])
+        .select()
+        .single();
+    if (error)
+        throw new Error(error.message);
+    return mapAlert(data);
 });
 exports.createAlert = createAlert;
 const getAlerts = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (filters = {}) {
-    let query = firebase_1.db.collection('alerts');
+    let query = supabase_1.supabase.from('alerts').select('*');
     if (filters.projectId) {
-        query = query.where('projectId', '==', filters.projectId);
+        query = query.eq('project_id', filters.projectId);
     }
     if (filters.status) {
-        query = query.where('status', '==', filters.status);
+        query = query.eq('status', filters.status);
     }
     if (filters.priority) {
-        query = query.where('priority', '==', filters.priority);
+        query = query.eq('priority', filters.priority);
     }
-    const snapshot = yield query.orderBy('createdAt', 'desc').get();
-    return snapshot.docs.map(doc => (Object.assign({ id: doc.id }, doc.data())));
+    const { data, error } = yield query.order('created_at', { ascending: false });
+    if (error)
+        throw new Error(error.message);
+    return data.map(mapAlert);
 });
 exports.getAlerts = getAlerts;
 const updateAlert = (id, updateData) => __awaiter(void 0, void 0, void 0, function* () {
-    yield firebase_1.db.collection('alerts').doc(id).update(Object.assign(Object.assign({}, updateData), { updatedAt: new Date().toISOString() }));
-    const doc = yield firebase_1.db.collection('alerts').doc(id).get();
-    return Object.assign({ id: doc.id }, doc.data());
+    const dbUpdate = {
+        updated_at: new Date().toISOString()
+    };
+    if (updateData.type)
+        dbUpdate.type = updateData.type;
+    if (updateData.projectId)
+        dbUpdate.project_id = updateData.projectId;
+    if (updateData.priority)
+        dbUpdate.priority = updateData.priority;
+    if (updateData.description)
+        dbUpdate.description = updateData.description;
+    if (updateData.status)
+        dbUpdate.status = updateData.status;
+    if (updateData.date)
+        dbUpdate.date = updateData.date;
+    const { data, error } = yield supabase_1.supabase
+        .from('alerts')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single();
+    if (error)
+        throw new Error(error.message);
+    return mapAlert(data);
 });
 exports.updateAlert = updateAlert;
 const createAutoAlert = (type, projectId, description, priority) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if similar open alert exists to avoid duplicates
-    const existing = yield firebase_1.db.collection('alerts')
-        .where('projectId', '==', projectId)
-        .where('type', '==', type)
-        .where('status', 'in', ['Open', 'New', 'In Progress'])
-        .get();
-    if (!existing.empty)
+    const { data: existing } = yield supabase_1.supabase
+        .from('alerts')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('type', type)
+        .in('status', ['Open', 'New', 'In Progress']);
+    if (existing && existing.length > 0)
         return;
     yield (0, exports.createAlert)({
         type,
@@ -56,3 +96,14 @@ const createAutoAlert = (type, projectId, description, priority) => __awaiter(vo
     });
 });
 exports.createAutoAlert = createAutoAlert;
+const mapAlert = (a) => ({
+    id: a.id,
+    type: a.type,
+    projectId: a.project_id,
+    priority: a.priority,
+    description: a.description,
+    status: a.status,
+    date: a.date,
+    createdAt: a.created_at,
+    updatedAt: a.updated_at
+});

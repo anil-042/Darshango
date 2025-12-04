@@ -42,6 +42,7 @@ const router = (0, express_1.Router)({ mergeParams: true });
 router.use(authMiddleware_1.protect);
 router.post('/', (0, roleMiddleware_1.authorize)('Admin', 'StateNodalOfficer', 'Inspector'), (0, validators_1.validate)(validators_1.inspectionSchema), inspectionController.createInspection);
 router.get('/', inspectionController.getInspections);
+router.get('/:iid', inspectionController.getInspection);
 router.put('/:iid', (0, roleMiddleware_1.authorize)('Admin', 'Inspector'), inspectionController.updateInspection);
 router.delete('/:iid', (0, roleMiddleware_1.authorize)('Admin', 'Inspector'), inspectionController.deleteInspection);
 exports.default = router;

@@ -24,25 +24,24 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Map, label: 'Agency Mapping', path: '/agency-mapping' },
-    { icon: FolderKanban, label: 'Projects', path: '/projects' },
-    { icon: IndianRupee, label: 'Fund Flow', path: '/fund-flow' },
-    { icon: ClipboardCheck, label: 'Monitoring', path: '/monitoring' },
-    { icon: FileText, label: 'Documents', path: '/documents' },
-    { icon: MessageSquare, label: 'Communication', path: '/communication' },
-    { icon: AlertTriangle, label: 'Alerts', path: '/alerts' },
-    { icon: BarChart3, label: 'Reports', path: '/reports' },
+  const allMenuItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/', module: 'Dashboard' },
+    { icon: Map, label: 'Agencies', path: '/agency-mapping', module: 'Agencies' },
+    { icon: FolderKanban, label: 'Projects', path: '/projects', module: 'Projects' },
+    { icon: IndianRupee, label: 'Fund Flow', path: '/fund-flow', module: 'Fund Flow' },
+    { icon: ClipboardCheck, label: 'Monitoring', path: '/monitoring', module: 'Monitoring' },
+    { icon: MessageSquare, label: 'Communication', path: '/communication', module: 'Communication' },
+    { icon: AlertTriangle, label: 'Alerts', path: '/alerts', module: 'Alerts' },
+    { icon: BarChart3, label: 'Reports', path: '/reports', module: 'Reports' },
+    { icon: Settings, label: 'Admin Settings', path: '/admin', module: 'Admin' },
   ];
 
-  // Only show Admin link if user is Admin
-  if (user?.role === 'Admin') {
-    menuItems.push({ icon: Users, label: 'User Management', path: '/admin/users' });
-    menuItems.push({ icon: Settings, label: 'Admin Settings', path: '/admin' });
-  }
+  const menuItems = allMenuItems.filter(item => {
+    if (item.module === 'Communication') return true; // Default visible
+    return hasPermission(item.module, 'View');
+  });
 
   return (
     <div

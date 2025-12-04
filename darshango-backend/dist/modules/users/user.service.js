@@ -9,40 +9,44 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.getUserById = exports.getAllUsers = void 0;
-const firebase_1 = require("../../config/firebase");
+exports.deleteUser = exports.getAllUsers = void 0;
+const supabase_1 = require("../../config/supabase");
 const getAllUsers = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (filters = {}) {
-    // BACKEND → FIRESTORE FLOW
-    let query = firebase_1.db.collection('users');
+    let query = supabase_1.supabase.from('users').select('*').neq('status', 'Deleted'); // Exclude deleted users
     if (filters.role)
-        query = query.where('role', '==', filters.role);
+        query = query.eq('role', filters.role);
     if (filters.agencyId)
-        query = query.where('agencyId', '==', filters.agencyId);
+        query = query.eq('agency_id', filters.agencyId);
     if (filters.state)
-        query = query.where('state', '==', filters.state);
+        query = query.eq('state', filters.state);
     if (filters.district)
-        query = query.where('district', '==', filters.district);
-    const snapshot = yield query.get();
-    return snapshot.docs.map(doc => (Object.assign({ id: doc.id }, doc.data())));
+        query = query.eq('district', filters.district);
+    const { data, error } = yield query;
+    if (error)
+        throw new Error(error.message);
+    // Map snake_case to camelCase
+    return data.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        agencyId: user.agency_id,
+        state: user.state,
+        district: user.district,
+        status: user.status,
+        createdAt: user.created_at
+    }));
 });
 exports.getAllUsers = getAllUsers;
-const getUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    // BACKEND → FIRESTORE FLOW
-    const doc = yield firebase_1.db.collection('users').doc(id).get();
-    if (!doc.exists)
-        return null;
-    return Object.assign({ id: doc.id }, doc.data());
-});
-exports.getUserById = getUserById;
-const updateUser = (id, updateData) => __awaiter(void 0, void 0, void 0, function* () {
-    // BACKEND → FIRESTORE FLOW
-    yield firebase_1.db.collection('users').doc(id).update(updateData);
-    return (0, exports.getUserById)(id);
-});
-exports.updateUser = updateUser;
+// ... (keep other functions)
 const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    // BACKEND → FIRESTORE FLOW
-    yield firebase_1.db.collection('users').doc(id).delete();
+    // Soft delete to avoid foreign key constraints
+    const { error } = yield supabase_1.supabase
+        .from('users')
+        .update({ status: 'Deleted' })
+        .eq('id', id);
+    if (error)
+        throw new Error(error.message);
     return true;
 });
 exports.deleteUser = deleteUser;

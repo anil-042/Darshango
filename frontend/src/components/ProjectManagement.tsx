@@ -314,7 +314,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -453,7 +453,9 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
     setIsEditSheetOpen(true);
   };
 
-  const canEdit = user?.role === 'Admin' || user?.role === 'StateNodalOfficer';
+  const canCreate = hasPermission('Projects', 'Create');
+  const canEdit = hasPermission('Projects', 'Edit');
+  const canDelete = hasPermission('Projects', 'Delete');
 
   const filteredProjects = projects.filter(project => {
     const matchesComponentProp = !component || project.component === component;
@@ -478,7 +480,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
           <p className="text-gray-500">Manage and monitor project progress</p>
         </div>
 
-        {canEdit && (
+        {canCreate && (
           <Sheet open={isAddSheetOpen} onOpenChange={setIsAddSheetOpen}>
             <SheetTrigger asChild>
               <Button className="bg-blue-600 hover:bg-blue-700">
@@ -655,7 +657,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
                         View
                       </Button>
 
-                      {canEdit && (
+                      {(canEdit || canDelete) && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -663,17 +665,21 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditSheet(project)}>
-                              <Pencil className="w-4 h-4 mr-2" />
-                              Edit Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => handleDelete(project.id)}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete Project
-                            </DropdownMenuItem>
+                            {canEdit && (
+                              <DropdownMenuItem onClick={() => openEditSheet(project)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Edit Details
+                              </DropdownMenuItem>
+                            )}
+                            {canDelete && (
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDelete(project.id)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Project
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}

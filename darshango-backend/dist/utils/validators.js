@@ -18,6 +18,7 @@ exports.loginSchema = zod_1.z.object({
     password: zod_1.z.string().min(1),
 });
 exports.projectSchema = zod_1.z.object({
+    projectId: zod_1.z.string().min(1),
     title: zod_1.z.string().min(3),
     component: zod_1.z.enum(['Adarsh Gram', 'GIA', 'Hostel']),
     implementingAgencyId: zod_1.z.string(),
@@ -28,7 +29,7 @@ exports.projectSchema = zod_1.z.object({
     endDate: zod_1.z.string(),
     status: zod_1.z.enum(['In Progress', 'Completed', 'Under Review', 'Delayed']),
     progress: zod_1.z.number().min(0).max(100).optional(),
-    estimatedCost: zod_1.z.number().positive(),
+    estimatedCost: zod_1.z.number().nonnegative(),
     location: zod_1.z.object({
         lat: zod_1.z.number(),
         lng: zod_1.z.number()
@@ -39,15 +40,20 @@ exports.projectSchema = zod_1.z.object({
 exports.agencySchema = zod_1.z.object({
     name: zod_1.z.string().min(2),
     code: zod_1.z.string().optional(),
-    type: zod_1.z.enum(['Implementing', 'Executing']).optional(),
-    role: zod_1.z.string().optional(),
+    category: zod_1.z.enum(['PWD', 'StateDept', 'PRI', 'ULB', 'DevelopmentAuthority', 'HousingBoard', 'EngineeringDept', 'NGO', 'PrivateContractor', 'OtherGovtAgency']),
+    roleType: zod_1.z.enum(['Implementing', 'Executing']),
     state: zod_1.z.string().optional(),
     district: zod_1.z.string().optional(),
-    contactPerson: zod_1.z.string().optional(),
-    phone: zod_1.z.string().optional(),
-    email: zod_1.z.string().email().optional(),
     address: zod_1.z.string().optional(),
-    componentsHandled: zod_1.z.array(zod_1.z.string()).optional(),
+    contactPerson: zod_1.z.string().optional(),
+    designation: zod_1.z.string().optional(),
+    phone: zod_1.z.string().optional(),
+    email: zod_1.z.union([zod_1.z.string().email(), zod_1.z.literal('')]).optional(),
+    registrationNumber: zod_1.z.string().optional().nullable(),
+    gstin: zod_1.z.string().optional().nullable(),
+    website: zod_1.z.string().optional().nullable(),
+    remarks: zod_1.z.string().optional().nullable(),
+    components: zod_1.z.array(zod_1.z.string()).optional(),
     assignedProjects: zod_1.z.array(zod_1.z.string()).optional(),
     activeProjects: zod_1.z.number().optional(),
     performance: zod_1.z.number().optional(),
@@ -55,14 +61,16 @@ exports.agencySchema = zod_1.z.object({
 });
 exports.fundSchema = zod_1.z.object({
     projectId: zod_1.z.string().optional(),
-    type: zod_1.z.enum(['Release', 'Adjustment', 'Utilization']),
+    type: zod_1.z.enum(['Ministry Allocation', 'State Transfer', 'District Allocation', 'Agency Release', 'Utilization']),
+    fromLevel: zod_1.z.enum(['Ministry', 'State', 'District', 'Agency', 'Ground']),
+    toLevel: zod_1.z.enum(['State', 'District', 'Agency', 'Ground']),
     amount: zod_1.z.number().positive(),
-    utr: zod_1.z.string().optional(),
-    transactionDate: zod_1.z.string(),
-    status: zod_1.z.enum(['Completed', 'Pending', 'Processing', 'Failed']),
+    utrNumber: zod_1.z.string().optional(),
+    date: zod_1.z.string(),
+    status: zod_1.z.enum(['Pending', 'Completed', 'Approved', 'Failed']),
     description: zod_1.z.string().optional(),
-    ucStatus: zod_1.z.enum(['Pending', 'Submitted', 'Approved']).optional(),
-    ucDocumentUrl: zod_1.z.string().optional(),
+    proofFile: zod_1.z.string().optional(),
+    createdBy: zod_1.z.string().optional(),
 });
 exports.inspectionSchema = zod_1.z.object({
     inspectorName: zod_1.z.string(),
@@ -109,6 +117,7 @@ exports.milestoneSchema = zod_1.z.object({
     orderIndex: zod_1.z.number().optional(),
 });
 exports.alertSchema = zod_1.z.object({
+    id: zod_1.z.string().optional(),
     type: zod_1.z.string(),
     projectId: zod_1.z.string(),
     priority: zod_1.z.enum(['High', 'Medium', 'Low']),

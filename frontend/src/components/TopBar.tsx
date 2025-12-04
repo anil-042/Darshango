@@ -17,7 +17,7 @@ import { useAuth } from '../context/AuthContext';
 
 const breadcrumbMap: Record<string, string[]> = {
   '/': ['Home'],
-  '/agency-mapping': ['Home', 'Agency Mapping'],
+  '/agency-mapping': ['Home', 'Agencies'],
   '/projects': ['Home', 'Projects'],
   '/adarsh-gram': ['Home', 'Adarsh Gram'],
   '/gia': ['Home', 'GIA'],

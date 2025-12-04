@@ -5,7 +5,7 @@ import { authService } from '../../services/authService';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { AlertCircle, CheckCircle, Mail, Lock, Smartphone } from 'lucide-react';
+import { AlertCircle, CheckCircle, Mail, Lock } from 'lucide-react';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -65,6 +65,10 @@ export default function Login() {
                             </div>
                         )}
 
+                        <div className="text-center mb-4">
+                            <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Role-based Login</span>
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Email</label>
                             <div className="relative">
@@ -109,11 +113,11 @@ export default function Login() {
                                 <span className="w-full border-t" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                                <span className="bg-white px-2 text-gray-500">For Viewer Continue with</span>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <Button variant="outline" type="button" onClick={handleGoogleLogin} disabled={isLoading}>
                                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                                     <path
@@ -134,10 +138,6 @@ export default function Login() {
                                     />
                                 </svg>
                                 Google
-                            </Button>
-                            <Button variant="outline" type="button" disabled={isLoading}>
-                                <Smartphone className="mr-2 h-4 w-4" />
-                                OTP
                             </Button>
                         </div>
                     </form>

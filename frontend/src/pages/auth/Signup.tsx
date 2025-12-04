@@ -15,7 +15,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 import { UserRole } from '../../types';
 
 export default function Signup() {
-    const [step, setStep] = useState<'details' | 'otp' | 'pending'>('details');
+    const [step, setStep] = useState<'details' | 'pending'>('details');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -24,7 +24,7 @@ export default function Signup() {
         confirmPassword: '',
         role: '' as UserRole,
     });
-    const [otp, setOtp] = useState('');
+    // const [otp, setOtp] = useState(''); // Removed
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -39,37 +39,14 @@ export default function Signup() {
         }
 
         setIsLoading(true);
-        // Simulate sending OTP
-        setTimeout(() => {
-            setIsLoading(false);
-            setStep('otp');
-        }, 1000);
-    };
-
-    const handleVerifyOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setIsLoading(true);
-
         try {
-            const isValid = await authService.verifyOTP(formData.email, otp);
-            if (isValid) {
-                await authService.register({
-                    name: formData.name,
-                    email: formData.email,
-                    role: formData.role,
-                    password: formData.password
-                });
-
-                if (formData.role === 'Viewer') {
-                    // Auto-approve viewer
-                    navigate('/login');
-                } else {
-                    setStep('pending');
-                }
-            } else {
-                setError('Invalid OTP');
-            }
+            await authService.register({
+                fullName: formData.name,
+                email: formData.email,
+                role: formData.role,
+                password: formData.password
+            });
+            setStep('pending');
         } catch (err: any) {
             setError(err.message || 'Registration failed');
         } finally {
@@ -137,9 +114,8 @@ export default function Signup() {
                                     <SelectContent>
                                         <SelectItem value="StateNodalOfficer">State Nodal Officer</SelectItem>
                                         <SelectItem value="DistrictOfficer">District Officer</SelectItem>
-                                        <SelectItem value="AgencyAdmin">Agency Admin</SelectItem>
+                                        <SelectItem value="AgencyAdmin">Agency Manager</SelectItem>
                                         <SelectItem value="Inspector">Inspector</SelectItem>
-                                        <SelectItem value="Viewer">Viewer (Public)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -171,34 +147,7 @@ export default function Signup() {
                         </form>
                     )}
 
-                    {step === 'otp' && (
-                        <form onSubmit={handleVerifyOtp} className="space-y-4">
-                            <div className="text-center mb-4">
-                                <p className="text-sm text-gray-600">Enter the OTP sent to your phone</p>
-                                <p className="text-xs text-gray-400">(Use 123456 for demo)</p>
-                            </div>
 
-                            {error && (
-                                <div className="p-3 bg-red-50 text-red-700 rounded-md flex items-center gap-2 text-sm">
-                                    <AlertCircle className="w-4 h-4" />
-                                    {error}
-                                </div>
-                            )}
-
-                            <Input
-                                className="text-center text-2xl tracking-widest"
-                                maxLength={6}
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                placeholder="000000"
-                                required
-                            />
-
-                            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                                {isLoading ? 'Verifying...' : 'Verify OTP'}
-                            </Button>
-                        </form>
-                    )}
 
                     {step === 'pending' && (
                         <div className="text-center space-y-4">

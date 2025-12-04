@@ -42,13 +42,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteInspection = exports.updateInspection = exports.getInspections = exports.createInspection = void 0;
+exports.getInspection = exports.deleteInspection = exports.updateInspection = exports.getInspections = exports.createInspection = void 0;
 const inspectionService = __importStar(require("./inspection.service"));
 const response_1 = require("../../utils/response");
 const createInspection = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // FRONTEND → BACKEND FLOW
     // InspectionsTab.tsx → POST /projects/:id/inspections → inspection.controller.createInspection → inspection.service.createInspection
     try {
+        console.log('Controller createInspection params:', req.params, 'body:', req.body);
         const inspection = yield inspectionService.createInspection(req.params.id, req.body);
         (0, response_1.successResponse)(res, inspection, 'Inspection scheduled successfully', 201);
     }
@@ -96,11 +97,44 @@ const updateInspection = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.updateInspection = updateInspection;
 const deleteInspection = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield inspectionService.deleteInspection(req.params.id, req.params.iid);
+        console.log('deleteInspection called. Params:', req.params);
+        let projectId = req.params.id;
+        const inspectionId = req.params.iid;
+        // If projectId is missing (global delete route), try to find it
+        if (!projectId) {
+            console.log('Global delete detected. Looking up project for inspection:', inspectionId);
+            // We can fetch the inspection from the root collection to find its project ID
+            const inspection = yield inspectionService.getInspectionById(inspectionId);
+            if (inspection) {
+                console.log('Found inspection:', inspection);
+                projectId = inspection.projectId;
+            }
+            else {
+                console.log('Inspection not found for ID:', inspectionId);
+                return (0, response_1.errorResponse)(res, 'Inspection not found', 404);
+            }
+        }
+        console.log('Deleting inspection:', inspectionId, 'from project:', projectId);
+        yield inspectionService.deleteInspection(projectId, inspectionId);
         (0, response_1.successResponse)(res, null, 'Inspection deleted successfully');
+    }
+    catch (error) {
+        console.error('Delete failed:', error);
+        (0, response_1.errorResponse)(res, error.message);
+    }
+});
+exports.deleteInspection = deleteInspection;
+const getInspection = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const inspectionId = req.params.iid;
+        const inspection = yield inspectionService.getInspectionById(inspectionId);
+        if (!inspection) {
+            return (0, response_1.errorResponse)(res, 'Inspection not found', 404);
+        }
+        (0, response_1.successResponse)(res, inspection);
     }
     catch (error) {
         (0, response_1.errorResponse)(res, error.message);
     }
 });
-exports.deleteInspection = deleteInspection;
+exports.getInspection = getInspection;

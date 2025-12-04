@@ -51,7 +51,11 @@ const uploadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
         if (!req.file) {
             return (0, response_1.errorResponse)(res, 'No file uploaded', 400);
         }
-        const publicUrl = yield (0, upload_1.uploadFileToStorage)(req.file, 'documents');
+        const projectId = req.params.id || req.body.projectId;
+        if (!projectId) {
+            return (0, response_1.errorResponse)(res, 'Project ID is required', 400);
+        }
+        const publicUrl = yield (0, upload_1.uploadFileToStorage)(req.file);
         const documentData = {
             title: req.body.title || req.file.originalname,
             type: req.file.mimetype,
@@ -62,10 +66,11 @@ const uploadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
             agencyId: req.body.agencyId,
             status: 'Verified' // Auto-verify for now, or 'Pending' if approval needed
         };
-        const document = yield documentService.uploadDocument(req.params.id, documentData);
+        const document = yield documentService.uploadDocument(projectId, documentData);
         (0, response_1.successResponse)(res, document, 'Document uploaded successfully', 201);
     }
     catch (error) {
+        console.error("[DocumentController] Upload failed:", error);
         (0, response_1.errorResponse)(res, error.message);
     }
 });

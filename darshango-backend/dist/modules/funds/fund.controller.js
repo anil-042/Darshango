@@ -48,9 +48,7 @@ const response_1 = require("../../utils/response");
 const createFundTransaction = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const projectId = req.params.id || req.body.projectId;
-        if (!projectId) {
-            return (0, response_1.errorResponse)(res, 'Project ID is required', 400);
-        }
+        // ProjectId is optional now (if missing, it's a global fund)
         const fund = yield fundService.createFundTransaction(projectId, req.body);
         return (0, response_1.successResponse)(res, fund, 'Fund transaction created successfully', 201);
     }
@@ -79,15 +77,7 @@ exports.getFundTransactions = getFundTransactions;
 const updateFund = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const projectId = req.params.id || req.body.projectId;
-        const fundId = req.params.fid; // Assuming /:id/funds/:fid or /funds/:fid (if global, need logic)
-        // If global route /funds/:fid is used, projectId might not be in params.
-        // For now, assuming update is done via nested route or we need to fetch fund to get projectId if not provided.
-        // But let's stick to the pattern. If projectId is not in params, check body.
-        if (!projectId) {
-            // If we don't have projectId, we can't easily update subcollection without querying all projects (expensive)
-            // or we mandate projectId in body for global updates.
-            return (0, response_1.errorResponse)(res, 'Project ID is required for updates', 400);
-        }
+        const fundId = req.params.fid;
         const updatedFund = yield fundService.updateFundTransaction(projectId, fundId, req.body);
         return (0, response_1.successResponse)(res, updatedFund, 'Fund transaction updated successfully');
     }
@@ -98,11 +88,8 @@ const updateFund = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.updateFund = updateFund;
 const deleteFund = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const projectId = req.params.id || req.body.projectId;
+        const projectId = req.params.id || req.body.projectId || req.query.projectId;
         const fundId = req.params.fid;
-        if (!projectId) {
-            return (0, response_1.errorResponse)(res, 'Project ID is required for deletion', 400);
-        }
         yield fundService.deleteFundTransaction(projectId, fundId);
         return (0, response_1.successResponse)(res, null, 'Fund transaction deleted successfully');
     }
