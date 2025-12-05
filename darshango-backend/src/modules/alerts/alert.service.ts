@@ -1,4 +1,5 @@
 import { supabase } from '../../config/supabase';
+import { createNotification } from '../notifications/notification.service';
 
 export const createAlert = async (alertData: any) => {
     const dbAlert: any = {
@@ -8,6 +9,7 @@ export const createAlert = async (alertData: any) => {
         description: alertData.description,
         status: alertData.status || 'Open',
         date: alertData.date || new Date().toISOString(),
+        alert_id: alertData.id || alertData.customId, // Save Custom ID to new column
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -19,6 +21,27 @@ export const createAlert = async (alertData: any) => {
         .single();
 
     if (error) throw new Error(error.message);
+
+    // Normalize priority for check
+    const prio = (alertData.priority || 'Low').toString().toLowerCase();
+
+    console.log(`[AlertService] Creating Alert. Input Priority: ${alertData.priority}, Normalized: ${prio}`);
+
+    // Trigger Notification for Important Alerts
+    if (prio === 'high' || prio === 'medium' || alertData.priority === 'High' || alertData.priority === 'Medium') {
+        console.log("[AlertService] Priority threshold met. Attempting to create notification...");
+        try {
+            await createNotification(
+                `New Alert: ${alertData.type}`,
+                alertData.description || 'New alert created',
+                (prio === 'high' || alertData.priority === 'High') ? 'Error' : 'Warning',
+                `/alerts`
+            );
+        } catch (notifError) {
+            console.error("Failed to send alert notification:", notifError);
+        }
+    }
+
     return mapAlert(data);
 };
 
@@ -75,6 +98,8 @@ export const createAutoAlert = async (type: string, projectId: string, descripti
 
     if (existing && existing.length > 0) return;
 
+
+
     await createAlert({
         type,
         projectId,
@@ -83,6 +108,8 @@ export const createAutoAlert = async (type: string, projectId: string, descripti
         status: 'New',
         date: new Date().toISOString()
     });
+
+
 };
 
 const mapAlert = (a: any) => ({
@@ -92,6 +119,7 @@ const mapAlert = (a: any) => ({
     priority: a.priority,
     description: a.description,
     status: a.status,
+    customId: a.alert_id, // Map DB column to frontend property
     date: a.date,
     createdAt: a.created_at,
     updatedAt: a.updated_at

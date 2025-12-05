@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAutoAlert = exports.updateAlert = exports.getAlerts = exports.createAlert = void 0;
 const supabase_1 = require("../../config/supabase");
+const notification_service_1 = require("../notifications/notification.service");
 const createAlert = (alertData) => __awaiter(void 0, void 0, void 0, function* () {
     const dbAlert = {
         type: alertData.type,
@@ -19,6 +20,7 @@ const createAlert = (alertData) => __awaiter(void 0, void 0, void 0, function* (
         description: alertData.description,
         status: alertData.status || 'Open',
         date: alertData.date || new Date().toISOString(),
+        alert_id: alertData.id || alertData.customId, // Save Custom ID to new column
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -29,6 +31,19 @@ const createAlert = (alertData) => __awaiter(void 0, void 0, void 0, function* (
         .single();
     if (error)
         throw new Error(error.message);
+    // Normalize priority for check
+    const prio = (alertData.priority || 'Low').toString().toLowerCase();
+    console.log(`[AlertService] Creating Alert. Input Priority: ${alertData.priority}, Normalized: ${prio}`);
+    // Trigger Notification for Important Alerts
+    if (prio === 'high' || prio === 'medium' || alertData.priority === 'High' || alertData.priority === 'Medium') {
+        console.log("[AlertService] Priority threshold met. Attempting to create notification...");
+        try {
+            yield (0, notification_service_1.createNotification)(`New Alert: ${alertData.type}`, alertData.description || 'New alert created', (prio === 'high' || alertData.priority === 'High') ? 'Error' : 'Warning', `/alerts`);
+        }
+        catch (notifError) {
+            console.error("Failed to send alert notification:", notifError);
+        }
+    }
     return mapAlert(data);
 });
 exports.createAlert = createAlert;
@@ -103,6 +118,7 @@ const mapAlert = (a) => ({
     priority: a.priority,
     description: a.description,
     status: a.status,
+    customId: a.alert_id, // Map DB column to frontend property
     date: a.date,
     createdAt: a.created_at,
     updatedAt: a.updated_at

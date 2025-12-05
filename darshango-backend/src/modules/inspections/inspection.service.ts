@@ -1,6 +1,7 @@
 import { supabase } from '../../config/supabase';
 import { createAutoAlert } from '../alerts/alert.service';
 import { recalculateProjectStats } from '../projects/project.service';
+import { createNotification } from '../notifications/notification.service';
 
 export const createInspection = async (projectId: string, inspectionData: any) => {
     console.log('Creating inspection for project:', projectId, 'Data:', inspectionData);
@@ -11,14 +12,14 @@ export const createInspection = async (projectId: string, inspectionData: any) =
         date: inspectionData.date,
         status: inspectionData.status,
         rating: inspectionData.rating,
-        severity: inspectionData.severity,
+        // severity: inspectionData.severity, // Removed: Not in DB
         comments: inspectionData.comments,
         findings: inspectionData.findings,
         checklist: inspectionData.checklist, // JSONB
         geo_location_lat: inspectionData.geoLocation?.lat,
         geo_location_lng: inspectionData.geoLocation?.lng,
         images: inspectionData.images,
-        inspection_id: inspectionData.id,
+        // inspection_id: inspectionData.id, // Removed: Not in DB
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -29,12 +30,36 @@ export const createInspection = async (projectId: string, inspectionData: any) =
         .select()
         .single();
 
-    if (error) throw new Error(error.message);
+    if (error) {
+        console.error("!!! SUPABASE INSERT ERROR !!!");
+        console.dir(error, { depth: null });
+        throw new Error(JSON.stringify(error));
+    }
 
-    await recalculateProjectStats(projectId);
+    try {
+        await recalculateProjectStats(projectId);
+    } catch (statsError) {
+        console.error("Failed to recalculate project stats", statsError);
+    }
+
+    // Notify System (Non-blocking)
+    try {
+        await createNotification(
+            'New Inspection Report',
+            `Inspection submitted for Project: ${projectId} by ${inspectionData.inspectorName}`,
+            'Info',
+            `/projects/${projectId}`
+        );
+    } catch (notifError) {
+        console.error('Failed to send inspection notification:', notifError);
+    }
 
     if (inspectionData.rating === 'Needs Attention' || inspectionData.rating === 'Critical' || inspectionData.severity === 'Critical') {
-        await createAutoAlert('Inspection', projectId, `Critical inspection finding: ${inspectionData.findings}`, 'High');
+        try {
+            await createAutoAlert('Inspection', projectId, `Critical inspection finding: ${inspectionData.findings}`, 'High');
+        } catch (alertError) {
+            console.error("Failed to create auto alert", alertError);
+        }
     }
 
     console.log('Inspection created with ID:', data.id);
@@ -82,7 +107,7 @@ export const updateInspection = async (projectId: string, inspectionId: string, 
     if (updateData.date) dbUpdate.date = updateData.date;
     if (updateData.status) dbUpdate.status = updateData.status;
     if (updateData.rating) dbUpdate.rating = updateData.rating;
-    if (updateData.severity) dbUpdate.severity = updateData.severity;
+    // if (updateData.severity) dbUpdate.severity = updateData.severity; // Removed
     if (updateData.comments) dbUpdate.comments = updateData.comments;
     if (updateData.findings) dbUpdate.findings = updateData.findings;
     if (updateData.checklist) dbUpdate.checklist = updateData.checklist;
@@ -91,7 +116,7 @@ export const updateInspection = async (projectId: string, inspectionId: string, 
         dbUpdate.geo_location_lng = updateData.geoLocation.lng;
     }
     if (updateData.detailedReview) dbUpdate.review = updateData.detailedReview;
-    if (updateData.customId) dbUpdate.inspection_id = updateData.customId;
+    // if (updateData.customId) dbUpdate.inspection_id = updateData.customId; // Removed
     if (updateData.images) dbUpdate.images = updateData.images;
 
     const { data, error } = await supabase
@@ -131,11 +156,11 @@ const mapInspection = (i: any) => ({
     date: i.date,
     status: i.status,
     rating: i.rating,
-    severity: i.severity,
+    // severity: i.severity, // Removed
     comments: i.comments,
     findings: i.findings,
     detailedReview: i.review,
-    customId: i.inspection_id,
+    // customId: i.inspection_id, // Removed
     checklist: i.checklist,
     geoLocation: {
         lat: i.geo_location_lat,

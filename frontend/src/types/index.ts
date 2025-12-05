@@ -73,7 +73,7 @@ export interface Inspection {
     customId?: string;
     detailedReview?: string;
     images?: string[];
-    detailedReview?: string;
+    images?: string[];
 }
 
 export interface Document {
@@ -100,6 +100,7 @@ export interface Alert {
     date: string;
     severity?: 'High' | 'Medium' | 'Low'; // Optional alias for priority if needed
     message?: string; // Optional alias for description
+    customId?: string; // Mapped from DB alert_id
 }
 
 export interface Milestone {

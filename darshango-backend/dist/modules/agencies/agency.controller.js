@@ -61,7 +61,8 @@ const getAgencies = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     // FRONTEND → BACKEND FLOW
     // AgencyMapping.tsx → GET /agencies → agency.controller.getAgencies → agency.service.getAllAgencies
     try {
-        const agencies = yield agencyService.getAllAgencies();
+        const filters = req.query;
+        const agencies = yield agencyService.getAllAgencies(filters);
         (0, response_1.successResponse)(res, agencies);
     }
     catch (error) {

@@ -13,6 +13,7 @@ exports.deleteInspection = exports.updateInspection = exports.getAllInspections 
 const supabase_1 = require("../../config/supabase");
 const alert_service_1 = require("../alerts/alert.service");
 const project_service_1 = require("../projects/project.service");
+const notification_service_1 = require("../notifications/notification.service");
 const createInspection = (projectId, inspectionData) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     console.log('Creating inspection for project:', projectId, 'Data:', inspectionData);
@@ -22,14 +23,14 @@ const createInspection = (projectId, inspectionData) => __awaiter(void 0, void 0
         date: inspectionData.date,
         status: inspectionData.status,
         rating: inspectionData.rating,
-        severity: inspectionData.severity,
+        // severity: inspectionData.severity, // Removed: Not in DB
         comments: inspectionData.comments,
         findings: inspectionData.findings,
         checklist: inspectionData.checklist, // JSONB
         geo_location_lat: (_a = inspectionData.geoLocation) === null || _a === void 0 ? void 0 : _a.lat,
         geo_location_lng: (_b = inspectionData.geoLocation) === null || _b === void 0 ? void 0 : _b.lng,
         images: inspectionData.images,
-        inspection_id: inspectionData.id,
+        // inspection_id: inspectionData.id, // Removed: Not in DB
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -38,11 +39,31 @@ const createInspection = (projectId, inspectionData) => __awaiter(void 0, void 0
         .insert([dbInspection])
         .select()
         .single();
-    if (error)
-        throw new Error(error.message);
-    yield (0, project_service_1.recalculateProjectStats)(projectId);
+    if (error) {
+        console.error("!!! SUPABASE INSERT ERROR !!!");
+        console.dir(error, { depth: null });
+        throw new Error(JSON.stringify(error));
+    }
+    try {
+        yield (0, project_service_1.recalculateProjectStats)(projectId);
+    }
+    catch (statsError) {
+        console.error("Failed to recalculate project stats", statsError);
+    }
+    // Notify System (Non-blocking)
+    try {
+        yield (0, notification_service_1.createNotification)('New Inspection Report', `Inspection submitted for Project: ${projectId} by ${inspectionData.inspectorName}`, 'Info', `/projects/${projectId}`);
+    }
+    catch (notifError) {
+        console.error('Failed to send inspection notification:', notifError);
+    }
     if (inspectionData.rating === 'Needs Attention' || inspectionData.rating === 'Critical' || inspectionData.severity === 'Critical') {
-        yield (0, alert_service_1.createAutoAlert)('Inspection', projectId, `Critical inspection finding: ${inspectionData.findings}`, 'High');
+        try {
+            yield (0, alert_service_1.createAutoAlert)('Inspection', projectId, `Critical inspection finding: ${inspectionData.findings}`, 'High');
+        }
+        catch (alertError) {
+            console.error("Failed to create auto alert", alertError);
+        }
     }
     console.log('Inspection created with ID:', data.id);
     return mapInspection(data);
@@ -92,8 +113,7 @@ const updateInspection = (projectId, inspectionId, updateData) => __awaiter(void
         dbUpdate.status = updateData.status;
     if (updateData.rating)
         dbUpdate.rating = updateData.rating;
-    if (updateData.severity)
-        dbUpdate.severity = updateData.severity;
+    // if (updateData.severity) dbUpdate.severity = updateData.severity; // Removed
     if (updateData.comments)
         dbUpdate.comments = updateData.comments;
     if (updateData.findings)
@@ -106,8 +126,7 @@ const updateInspection = (projectId, inspectionId, updateData) => __awaiter(void
     }
     if (updateData.detailedReview)
         dbUpdate.review = updateData.detailedReview;
-    if (updateData.customId)
-        dbUpdate.inspection_id = updateData.customId;
+    // if (updateData.customId) dbUpdate.inspection_id = updateData.customId; // Removed
     if (updateData.images)
         dbUpdate.images = updateData.images;
     const { data, error } = yield supabase_1.supabase
@@ -143,11 +162,11 @@ const mapInspection = (i) => ({
     date: i.date,
     status: i.status,
     rating: i.rating,
-    severity: i.severity,
+    // severity: i.severity, // Removed
     comments: i.comments,
     findings: i.findings,
     detailedReview: i.review,
-    customId: i.inspection_id,
+    // customId: i.inspection_id, // Removed
     checklist: i.checklist,
     geoLocation: {
         lat: i.geo_location_lat,

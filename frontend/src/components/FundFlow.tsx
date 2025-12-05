@@ -11,7 +11,8 @@ import {
   ArrowDownLeft,
   Upload,
   AlertCircle,
-  Eye
+  Eye,
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Transaction, Project, Agency } from '../types';
@@ -49,9 +50,10 @@ import {
 } from './ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { locationData } from '../data/locations';
 
 // Constants
-const STATES = ['Uttar Pradesh', 'Maharashtra', 'Rajasthan', 'Gujarat', 'Madhya Pradesh'];
+const STATES = Object.keys(locationData);
 const DISTRICTS = {
   'Uttar Pradesh': ['Lucknow', 'Varanasi', 'Agra', 'Kanpur'],
   'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik'],
@@ -71,6 +73,11 @@ export function FundFlow() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+
+  // Overview State Selection
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+  const [selectedAgency, setSelectedAgency] = useState<string | null>(null);
 
   // CRUD States
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -310,6 +317,75 @@ export function FundFlow() {
     return matchesSearch && matchesType;
   });
 
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterType('all');
+  };
+
+  const hasActiveFilters = searchQuery !== '' || filterType !== 'all';
+
+  // Calculate state-specific funds
+  const getStateFunds = (state: string | null) => {
+    if (!state) {
+      // Return total for all states
+      return transactions
+        .filter(t => t.type === 'State Transfer' && t.status !== 'Failed')
+        .reduce((sum, t) => sum + t.amount, 0);
+    }
+    // Return funds for specific state
+    return transactions
+      .filter(t =>
+        (t.type === 'Ministry Allocation' || t.type === 'State Transfer') &&
+        t.state === state &&
+        t.status !== 'Failed'
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  // Calculate district-specific funds
+  const getDistrictFunds = (district: string | null) => {
+    if (!district) {
+      // Return total for all districts
+      return transactions
+        .filter(t => t.type === 'District Allocation' && t.status !== 'Failed')
+        .reduce((sum, t) => sum + t.amount, 0);
+    }
+    // Return funds for specific district
+    return transactions
+      .filter(t =>
+        t.type === 'District Allocation' &&
+        t.district === district &&
+        t.status !== 'Failed'
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  // Get available districts based on selected state
+  const getAvailableDistricts = () => {
+    if (!selectedState || !locationData[selectedState]) {
+      return [];
+    }
+    return locationData[selectedState];
+  };
+
+  // Calculate agency-specific funds
+  const getAgencyFunds = (agencyId: string | null) => {
+    if (!agencyId) {
+      // Return total for all agencies
+      return transactions
+        .filter(t => t.type === 'Agency Release' && t.status !== 'Failed')
+        .reduce((sum, t) => sum + t.amount, 0);
+    }
+    // Return funds for specific agency
+    return transactions
+      .filter(t =>
+        t.type === 'Agency Release' &&
+        t.agencyId === agencyId &&
+        t.status !== 'Failed'
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
   const canEdit = user?.role === 'Admin' || user?.role === 'StateNodalOfficer';
 
   const getProjectName = (id?: string) => projects.find(p => p.id === id)?.title || id || '-';
@@ -548,11 +624,25 @@ export function FundFlow() {
               <ArrowUpRight className="w-6 h-6 text-gray-400" />
               <div className="flex-1 min-w-[120px] space-y-2">
                 <div className="p-4 bg-white rounded-lg shadow-sm text-center">
-                  <p className="text-gray-600 mb-2 text-sm">State</p>
+                  <div className="mb-2">
+                    <Select value={selectedState || 'all'} onValueChange={(val) => setSelectedState(val === 'all' ? null : val)}>
+                      <SelectTrigger className="w-full border-none shadow-none hover:bg-gray-50">
+                        <SelectValue>
+                          <span className="text-gray-600 text-sm">{selectedState || 'State'}</span>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-80" style={{ maxHeight: '320px' }}>
+                        <SelectItem value="all">All States</SelectItem>
+                        {STATES.map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <p className="text-gray-900 font-bold">
-                    {formatCurrency(transactions
-                      .filter(t => t.type === 'State Transfer' && t.status !== 'Failed')
-                      .reduce((sum, t) => sum + t.amount, 0))}
+                    {formatCurrency(getStateFunds(selectedState))}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Transferred</p>
                 </div>
@@ -560,11 +650,29 @@ export function FundFlow() {
               <ArrowUpRight className="w-6 h-6 text-gray-400" />
               <div className="flex-1 min-w-[120px] space-y-2">
                 <div className="p-4 bg-white rounded-lg shadow-sm text-center">
-                  <p className="text-gray-600 mb-2 text-sm">District</p>
+                  <div className="mb-2">
+                    <Select
+                      value={selectedDistrict || 'all'}
+                      onValueChange={(val) => setSelectedDistrict(val === 'all' ? null : val)}
+                      disabled={!selectedState}
+                    >
+                      <SelectTrigger className="w-full border-none shadow-none hover:bg-gray-50">
+                        <SelectValue>
+                          <span className="text-gray-600 text-sm">{selectedDistrict || 'District'}</span>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-80" style={{ maxHeight: '320px' }}>
+                        <SelectItem value="all">All Districts</SelectItem>
+                        {getAvailableDistricts().map((district) => (
+                          <SelectItem key={district} value={district}>
+                            {district}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <p className="text-gray-900 font-bold">
-                    {formatCurrency(transactions
-                      .filter(t => t.type === 'District Allocation' && t.status !== 'Failed')
-                      .reduce((sum, t) => sum + t.amount, 0))}
+                    {formatCurrency(getDistrictFunds(selectedDistrict))}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Allocated</p>
                 </div>
@@ -572,11 +680,30 @@ export function FundFlow() {
               <ArrowUpRight className="w-6 h-6 text-gray-400" />
               <div className="flex-1 min-w-[120px] space-y-2">
                 <div className="p-4 bg-white rounded-lg shadow-sm text-center">
-                  <p className="text-gray-600 mb-2 text-sm">Agency</p>
+                  <div className="mb-2">
+                    <Select
+                      value={selectedAgency || 'all'}
+                      onValueChange={(val) => setSelectedAgency(val === 'all' ? null : val)}
+                    >
+                      <SelectTrigger className="w-full border-none shadow-none hover:bg-gray-50">
+                        <SelectValue>
+                          <span className="text-gray-600 text-sm">
+                            {selectedAgency ? agencies.find(a => a.id === selectedAgency)?.name || 'Agency' : 'Agency'}
+                          </span>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-80" style={{ maxHeight: '320px' }}>
+                        <SelectItem value="all">All Agencies</SelectItem>
+                        {agencies.map((agency) => (
+                          <SelectItem key={agency.id} value={agency.id}>
+                            {agency.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <p className="text-gray-900 font-bold">
-                    {formatCurrency(transactions
-                      .filter(t => t.type === 'Agency Release' && t.status !== 'Failed')
-                      .reduce((sum, t) => sum + t.amount, 0))}
+                    {formatCurrency(getAgencyFunds(selectedAgency))}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Released</p>
                 </div>
@@ -628,6 +755,16 @@ export function FundFlow() {
                   <SelectItem value="Utilization">Utilization</SelectItem>
                 </SelectContent>
               </Select>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Clear Filters
+                </Button>
+              )}
             </div>
           </div>
 
@@ -671,7 +808,13 @@ export function FundFlow() {
                       </TableCell>
                       <TableCell>
                         {txn.proofFile ? (
-                          <a href={txn.proofFile} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          <a
+                            href={txn.proofFile}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="text-blue-600 hover:underline flex items-center gap-1"
+                          >
                             <FileText className="w-3 h-3" /> View
                           </a>
                         ) : <span className="text-gray-400">-</span>}

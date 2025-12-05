@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
     Search,
     Filter,
@@ -11,7 +12,8 @@ import {
     Pencil,
     Trash2,
     Globe,
-    FileText
+    FileText,
+    X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Agency } from '../types';
@@ -249,13 +251,15 @@ const AgencyForm = ({ formData, setFormData, onSubmit, submitLabel }: AgencyForm
 );
 
 export function AgencyMapping() {
+    const [searchParams] = useSearchParams();
     const [agencies, setAgencies] = useState<Agency[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { user } = useAuth();
 
     // Filter States
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
     const [filterState, setFilterState] = useState('all');
+    const [filterDistrict, setFilterDistrict] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
     const [showFilters, setShowFilters] = useState(false);
 
@@ -387,10 +391,20 @@ export function AgencyMapping() {
             (agency.state?.toLowerCase() || '').includes(searchQuery.toLowerCase());
 
         const matchesState = filterState === 'all' || agency.state === filterState;
+        const matchesDistrict = filterDistrict === 'all' || agency.district === filterDistrict;
         const matchesCategory = filterCategory === 'all' || agency.category === filterCategory;
 
-        return matchesSearch && matchesState && matchesCategory;
+        return matchesSearch && matchesState && matchesDistrict && matchesCategory;
     });
+
+    const clearFilters = () => {
+        setSearchQuery('');
+        setFilterState('all');
+        setFilterDistrict('all');
+        setFilterCategory('all');
+    };
+
+    const hasActiveFilters = searchQuery !== '' || filterState !== 'all' || filterDistrict !== 'all' || filterCategory !== 'all';
 
 
 
@@ -445,13 +459,26 @@ export function AgencyMapping() {
                             <Filter className="w-4 h-4" />
                             Filters
                         </Button>
+                        {hasActiveFilters && (
+                            <Button
+                                variant="outline"
+                                onClick={clearFilters}
+                                className="gap-2"
+                            >
+                                <X className="w-4 h-4" />
+                                Clear Filters
+                            </Button>
+                        )}
                     </div>
 
                     {showFilters && (
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
                             <div>
                                 <label className="text-gray-700 mb-2 block">State</label>
-                                <Select value={filterState} onValueChange={setFilterState}>
+                                <Select value={filterState} onValueChange={(val) => {
+                                    setFilterState(val);
+                                    setFilterDistrict('all'); // Reset district when state changes
+                                }}>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
@@ -460,6 +487,26 @@ export function AgencyMapping() {
                                         {Object.keys(locationData).map((state) => (
                                             <SelectItem key={state} value={state}>
                                                 {state}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <label className="text-gray-700 mb-2 block">District</label>
+                                <Select
+                                    value={filterDistrict}
+                                    onValueChange={setFilterDistrict}
+                                    disabled={filterState === 'all'}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Districts</SelectItem>
+                                        {filterState !== 'all' && locationData[filterState]?.map((district) => (
+                                            <SelectItem key={district} value={district}>
+                                                {district}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

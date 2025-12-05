@@ -44,10 +44,13 @@ const createAgency = (agencyData) => __awaiter(void 0, void 0, void 0, function*
     return mapAgency(data);
 });
 exports.createAgency = createAgency;
-const getAllAgencies = () => __awaiter(void 0, void 0, void 0, function* () {
-    const { data, error } = yield supabase_1.supabase
-        .from('agencies')
-        .select('*');
+const getAllAgencies = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (filters = {}) {
+    let query = supabase_1.supabase.from('agencies').select('*');
+    // Global Search Filter
+    if (filters.search) {
+        query = query.or(`name.ilike.%${filters.search}%,code.ilike.%${filters.search}%`);
+    }
+    const { data, error } = yield query.order('created_at', { ascending: false });
     if (error)
         throw new Error(error.message);
     return data.map(mapAgency);

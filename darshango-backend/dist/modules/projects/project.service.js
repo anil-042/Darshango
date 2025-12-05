@@ -62,6 +62,10 @@ const getAllProjects = (...args_1) => __awaiter(void 0, [...args_1], void 0, fun
         query = query.eq('component', filters.component);
     if (filters.status)
         query = query.eq('status', filters.status);
+    // Global Search Filter
+    if (filters.search) {
+        query = query.or(`title.ilike.%${filters.search}%,project_id.ilike.%${filters.search}%`);
+    }
     const { data, error } = yield query.order('updated_at', { ascending: false });
     if (error) {
         console.error("[ProjectService] Error in getAllProjects:", error);

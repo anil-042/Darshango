@@ -17,7 +17,8 @@ export const getAgencies = async (req: Request, res: Response) => {
     // FRONTEND → BACKEND FLOW
     // AgencyMapping.tsx → GET /agencies → agency.controller.getAgencies → agency.service.getAllAgencies
     try {
-        const agencies = await agencyService.getAllAgencies();
+        const filters = req.query;
+        const agencies = await agencyService.getAllAgencies(filters);
         successResponse(res, agencies);
     } catch (error: any) {
         errorResponse(res, error.message);

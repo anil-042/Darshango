@@ -34,10 +34,15 @@ export const createAgency = async (agencyData: any) => {
     return mapAgency(data);
 };
 
-export const getAllAgencies = async () => {
-    const { data, error } = await supabase
-        .from('agencies')
-        .select('*');
+export const getAllAgencies = async (filters: any = {}) => {
+    let query = supabase.from('agencies').select('*');
+
+    // Global Search Filter
+    if (filters.search) {
+        query = query.or(`name.ilike.%${filters.search}%,code.ilike.%${filters.search}%`);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
     return data.map(mapAgency);

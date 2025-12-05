@@ -3,7 +3,7 @@ import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Search, Filter, Eye, Plus, Trash2, Calendar } from 'lucide-react';
+import { Search, Filter, Eye, Plus, Trash2, Calendar, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Inspection, Project } from '../types';
@@ -107,6 +107,15 @@ export function MonitoringInspections() {
     return matchesSearch && matchesStatus && matchesState && matchesDistrict;
   });
 
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterStatus('all');
+    setFilterState('all');
+    setFilterDistrict('all');
+  };
+
+  const hasActiveFilters = searchQuery !== '' || filterStatus !== 'all' || filterState !== 'all' || filterDistrict !== 'all';
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -159,6 +168,16 @@ export function MonitoringInspections() {
               <Filter className="w-4 h-4" />
               Filters
             </Button>
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="gap-2"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </Button>
+            )}
           </div>
 
           {showFilters && (

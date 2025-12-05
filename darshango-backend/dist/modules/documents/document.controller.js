@@ -51,10 +51,7 @@ const uploadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
         if (!req.file) {
             return (0, response_1.errorResponse)(res, 'No file uploaded', 400);
         }
-        const projectId = req.params.id || req.body.projectId;
-        if (!projectId) {
-            return (0, response_1.errorResponse)(res, 'Project ID is required', 400);
-        }
+        const projectId = req.params.id || req.body.projectId || null;
         const publicUrl = yield (0, upload_1.uploadFileToStorage)(req.file);
         const documentData = {
             title: req.body.title || req.file.originalname,

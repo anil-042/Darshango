@@ -18,6 +18,8 @@ const dashboard_routes_1 = __importDefault(require("./modules/dashboard/dashboar
 const meeting_routes_1 = __importDefault(require("./modules/meetings/meeting.routes"));
 const message_routes_1 = __importDefault(require("./modules/messages/message.routes"));
 const chat_routes_1 = __importDefault(require("./modules/chat/chat.routes"));
+const permissions_routes_1 = __importDefault(require("./modules/permissions/permissions.routes"));
+const notification_routes_1 = __importDefault(require("./modules/notifications/notification.routes"));
 const router = (0, express_1.Router)();
 router.use('/auth', auth_routes_1.default);
 router.use('/users', user_routes_1.default);
@@ -31,6 +33,9 @@ router.use('/inspections', inspection_routes_1.default); // Global inspections r
 router.use('/documents', document_routes_1.default); // Global documents route
 router.use('/milestones', milestone_routes_1.default); // Global milestones route
 router.use('/meetings', meeting_routes_1.default);
+router.use('/permissions', permissions_routes_1.default);
+router.use('/notifications', notification_routes_1.default);
+// Nested routes for project sub-resources
 // Nested routes for project sub-resources
 router.use('/projects/:id/milestones', milestone_routes_1.default);
 router.use('/projects/:id/funds', fund_routes_1.default);

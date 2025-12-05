@@ -48,6 +48,11 @@ export const getAllProjects = async (filters: any = {}) => {
     if (filters.component) query = query.eq('component', filters.component);
     if (filters.status) query = query.eq('status', filters.status);
 
+    // Global Search Filter
+    if (filters.search) {
+        query = query.or(`title.ilike.%${filters.search}%,project_id.ilike.%${filters.search}%`);
+    }
+
     const { data, error } = await query.order('updated_at', { ascending: false });
 
     if (error) {

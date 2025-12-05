@@ -14,6 +14,7 @@ import meetingRoutes from './modules/meetings/meeting.routes';
 import messageRoutes from './modules/messages/message.routes';
 import chatRoutes from './modules/chat/chat.routes';
 import permissionRoutes from './modules/permissions/permissions.routes';
+import notificationRoutes from './modules/notifications/notification.routes';
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.use('/documents', documentRoutes); // Global documents route
 router.use('/milestones', milestoneRoutes); // Global milestones route
 router.use('/meetings', meetingRoutes);
 router.use('/permissions', permissionRoutes);
+router.use('/notifications', notificationRoutes);
 
 // Nested routes for project sub-resources
 

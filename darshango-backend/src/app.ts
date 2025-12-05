@@ -7,7 +7,10 @@ import { errorHandler } from './middleware/errorHandler';
 const app = express();
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP to allow serving uploaded files
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors({
     origin: true,
     credentials: true
@@ -15,6 +18,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 import path from 'path';
+// Serve uploaded files - must be before API routes
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes

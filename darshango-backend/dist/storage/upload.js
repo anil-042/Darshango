@@ -38,7 +38,7 @@ const uploadFileToStorage = (file) => __awaiter(void 0, void 0, void 0, function
     // Since we are using diskStorage, the file is already saved.
     // We just need to return the public URL.
     // Assuming the backend serves 'uploads' directory at /uploads
-    const baseUrl = process.env.API_URL || 'http://localhost:5000';
+    const baseUrl = process.env.API_URL || 'http://localhost:5001';
     return `${baseUrl}/uploads/${file.filename}`;
 });
 exports.uploadFileToStorage = uploadFileToStorage;

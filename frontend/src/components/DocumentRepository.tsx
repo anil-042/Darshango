@@ -3,7 +3,7 @@ import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Search, Filter, FileText, Download, Eye, Folder, Plus, Trash2 } from 'lucide-react';
+import { Search, Filter, FileText, Download, Eye, Folder, Plus, Trash2, X } from 'lucide-react';
 import { api } from '../services/api';
 import { Document, Project } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -115,6 +115,13 @@ export function DocumentRepository() {
     return matchesSearch && matchesType;
   });
 
+  const clearFilters = () => {
+    setSearchQuery('');
+    setFilterType('all');
+  };
+
+  const hasActiveFilters = searchQuery !== '' || filterType !== 'all';
+
   const types = ['UC', 'Progress Report', 'Inspection Report', 'Other'];
 
   return (
@@ -175,6 +182,16 @@ export function DocumentRepository() {
               <Filter className="w-4 h-4" />
               Filters
             </Button>
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="gap-2"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </Button>
+            )}
           </div>
 
           {showFilters && (

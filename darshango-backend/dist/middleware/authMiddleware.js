@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.protect = void 0;
+exports.authorize = exports.protect = void 0;
 const jwt_1 = require("../utils/jwt");
 const supabase_1 = require("../config/supabase");
 const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -41,3 +41,12 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.protect = protect;
+const authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ success: false, message: 'User role is not authorized to access this route' });
+        }
+        next();
+    };
+};
+exports.authorize = authorize;

@@ -14,8 +14,8 @@ import {
 export const api = {
     // PROJECTS
     projects: {
-        getAll: async (): Promise<Project[]> => {
-            const response = await axiosInstance.get('/projects');
+        getAll: async (params?: any): Promise<Project[]> => {
+            const response = await axiosInstance.get('/projects', { params });
             return response.data.data;
         },
         getById: async (id: string): Promise<Project | undefined> => {
@@ -37,8 +37,8 @@ export const api = {
 
     // AGENCIES
     agencies: {
-        getAll: async (): Promise<Agency[]> => {
-            const response = await axiosInstance.get('/agencies');
+        getAll: async (params?: any): Promise<Agency[]> => {
+            const response = await axiosInstance.get('/agencies', { params });
             return response.data.data || [];
         },
         create: async (agency: Omit<Agency, 'id'>): Promise<Agency> => {
@@ -256,6 +256,14 @@ export const api = {
         update: async (permissions: any): Promise<any> => {
             const response = await axiosInstance.post('/permissions', permissions);
             return response.data.data;
+        }
+    },
+
+    // NOTIFICATIONS
+    notifications: {
+        getAll: async (): Promise<any[]> => {
+            const response = await axiosInstance.get('/notifications');
+            return response.data.data || [];
         }
     }
 };

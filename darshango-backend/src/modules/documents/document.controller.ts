@@ -10,10 +10,7 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
             return errorResponse(res, 'No file uploaded', 400);
         }
 
-        const projectId = req.params.id || req.body.projectId;
-        if (!projectId) {
-            return errorResponse(res, 'Project ID is required', 400);
-        }
+        const projectId = req.params.id || req.body.projectId || null;
 
         const publicUrl = await uploadFileToStorage(req.file);
 
