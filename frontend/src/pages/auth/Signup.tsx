@@ -15,7 +15,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 import { UserRole } from '../../types';
 
 export default function Signup() {
-    const [step, setStep] = useState<'details' | 'pending'>('details');
+    const [step, setStep] = useState<'details' | 'verification' | 'pending'>('details');
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -24,7 +24,7 @@ export default function Signup() {
         confirmPassword: '',
         role: '' as UserRole,
     });
-    // const [otp, setOtp] = useState(''); // Removed
+    const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -46,9 +46,24 @@ export default function Signup() {
                 role: formData.role,
                 password: formData.password
             });
-            setStep('pending');
+            setStep('verification');
         } catch (err: any) {
             setError(err.message || 'Registration failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleVerify = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
+
+        try {
+            await authService.verifyEmail(formData.email, otp);
+            setStep('pending');
+        } catch (err: any) {
+            setError(err.message || 'Verification failed');
         } finally {
             setIsLoading(false);
         }
@@ -58,9 +73,13 @@ export default function Signup() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center text-blue-900">Create Account</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center text-blue-900">
+                        {step === 'verification' ? 'Verify Email' : 'Create Account'}
+                    </CardTitle>
                     <CardDescription className="text-center">
-                        Join PM-AJAY Dashboard
+                        {step === 'verification'
+                            ? `Enter the code sent to ${formData.email}`
+                            : 'Join PM-AJAY Dashboard'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -147,16 +166,40 @@ export default function Signup() {
                         </form>
                     )}
 
-
+                    {step === 'verification' && (
+                        <form onSubmit={handleVerify} className="space-y-4">
+                            {error && (
+                                <div className="p-3 bg-red-50 text-red-700 rounded-md flex items-center gap-2 text-sm">
+                                    <AlertCircle className="w-4 h-4" />
+                                    {error}
+                                </div>
+                            )}
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Verification Code</label>
+                                <Input
+                                    type="text"
+                                    placeholder="123456"
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    className="text-center text-2xl tracking-widest"
+                                    maxLength={6}
+                                    required
+                                />
+                            </div>
+                            <Button type="submit" className="w-full !bg-green-600 hover:!bg-green-700 !text-white" disabled={isLoading}>
+                                {isLoading ? 'Verifying...' : 'Verify Email'}
+                            </Button>
+                        </form>
+                    )}
 
                     {step === 'pending' && (
                         <div className="text-center space-y-4">
                             <div className="flex justify-center">
                                 <CheckCircle className="w-16 h-16 text-green-500" />
                             </div>
-                            <h3 className="text-xl font-semibold text-gray-900">Registration Successful</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">Email Verified!</h3>
                             <p className="text-gray-600">
-                                Your account is pending approval from the Administrator. You will be notified once approved.
+                                Your email is verified. Your account is now <strong>pending Admin approval</strong>. You will be able to login once approved.
                             </p>
                             <Button onClick={() => navigate('/login')} variant="outline" className="w-full">
                                 Back to Login

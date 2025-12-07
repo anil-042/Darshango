@@ -226,6 +226,7 @@ export default function UserManagement() {
                                 <SelectItem value="all">All Statuses</SelectItem>
                                 <SelectItem value="Active">Active</SelectItem>
                                 <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="PendingApproval">Pending Approval</SelectItem>
                                 <SelectItem value="Inactive">Inactive</SelectItem>
                             </SelectContent>
                         </Select>
@@ -266,7 +267,7 @@ export default function UserManagement() {
                                             <TableCell>
                                                 <Badge className={
                                                     user.status === 'Active' ? 'bg-green-100 text-green-700' :
-                                                        user.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                        (user.status === 'Pending' || user.status === 'PendingApproval') ? 'bg-yellow-100 text-yellow-700' :
                                                             'bg-red-100 text-red-700'
                                                 }>
                                                     {user.status}
@@ -274,7 +275,7 @@ export default function UserManagement() {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
-                                                    {user.status === 'Pending' && (
+                                                    {(user.status === 'Pending' || user.status === 'PendingApproval') && (
                                                         <>
                                                             <Button
                                                                 size="sm"

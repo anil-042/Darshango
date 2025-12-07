@@ -7,6 +7,8 @@ import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { AlertCircle, CheckCircle, Mail, Lock } from 'lucide-react';
 
+import { useGoogleLogin } from '@react-oauth/google';
+
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -31,18 +33,34 @@ export default function Login() {
         }
     };
 
-    const handleGoogleLogin = async () => {
-        setIsLoading(true);
-        try {
-            const user = await authService.googleLogin();
-            login(user);
-            navigate('/');
-        } catch (err) {
+    const loginToGoogle = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setIsLoading(true);
+            try {
+                const user = await authService.googleLogin(tokenResponse.access_token);
+                login(user);
+                navigate('/');
+            } catch (err) {
+                console.error(err);
+                setError('Google login failed');
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        onError: () => {
             setError('Google login failed');
-        } finally {
             setIsLoading(false);
         }
+    });
+
+    const handleGoogleLogin = () => {
+        loginToGoogle();
     };
+
+    // RE-EVALUATION:
+    // I will use `GoogleLogin` component from the library.
+    // It renders a button. I can try to place it nicely.
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">

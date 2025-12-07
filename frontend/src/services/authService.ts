@@ -46,26 +46,37 @@ export const authService = {
     },
 
     /**
-     * Verify OTP (Mock - keep as mock for now if backend doesn't support it)
+     * Verify Email with OTP
      */
-    verifyOTP: async (email: string, otp: string): Promise<boolean> => {
-        return otp === '123456';
+    verifyEmail: async (email: string, code: string): Promise<any> => {
+        try {
+            const response = await axiosInstance.post('/auth/verify-email', { email, code });
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || 'Verification failed');
+        }
     },
 
     /**
      * Login with Google (Mock - keep as mock for now)
      */
-    googleLogin: async (): Promise<User> => {
-        // TODO: Implement real Google Login
-        const user: User = {
-            id: 'USR-GOOGLE',
-            name: 'Google User',
-            email: 'google.user@example.com',
-            role: 'Viewer',
-            status: 'Active'
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        return user;
+    /**
+     * Login with Google
+     */
+    googleLogin: async (token: string): Promise<User> => {
+        try {
+            const response = await axiosInstance.post('/auth/google', { token });
+            const { token: jwtToken, user } = response.data;
+
+            if (jwtToken) {
+                localStorage.setItem(TOKEN_KEY, jwtToken);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+            }
+            return user;
+        } catch (error: any) {
+            console.error('Google Login Error:', error);
+            throw new Error(error.response?.data?.message || 'Google login failed');
+        }
     },
 
     /**
