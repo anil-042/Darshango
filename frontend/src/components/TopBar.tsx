@@ -42,6 +42,9 @@ export function TopBar() {
   const [isFocused, setIsFocused] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showAllNotifications, setShowAllNotifications] = useState(false);
+
+  const displayedNotifications = showAllNotifications ? notifications : notifications.slice(0, 4);
 
   useEffect(() => {
     fetchNotifications();
@@ -52,8 +55,15 @@ export function TopBar() {
   const fetchNotifications = async () => {
     try {
       const data = await api.notifications.getAll();
-      setNotifications(data);
-      setUnreadCount(data.length); // Assuming all fetched are "new" for this simple implementation
+
+      setNotifications((prev) => {
+        // Only increment unread count if we have more notifications than before
+        if (data.length > prev.length) {
+          const diff = data.length - prev.length;
+          setUnreadCount(c => c + diff);
+        }
+        return data;
+      });
     } catch (error) {
       console.error("Failed to fetch notifications", error);
     }
@@ -170,7 +180,11 @@ export function TopBar() {
           )}
         </div>
 
-        <Popover>
+        <Popover onOpenChange={(open) => {
+          if (open) {
+            setUnreadCount(0);
+          }
+        }}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="relative text-gray-500">
               <Bell className="w-5 h-5" />
@@ -188,7 +202,7 @@ export function TopBar() {
                 </div>
               ) : (
                 <div className="flex flex-col">
-                  {notifications.map((notif: any) => (
+                  {displayedNotifications.map((notif: any) => (
                     <div
                       key={notif.id}
                       className="p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
@@ -205,8 +219,13 @@ export function TopBar() {
               )}
             </ScrollArea>
             <div className="p-3 border-t border-gray-100 text-center">
-              <Button variant="ghost" size="sm" className="text-xs text-blue-600 hover:text-blue-700 w-full">
-                View all notifications
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-blue-600 hover:text-blue-700 w-full"
+                onClick={() => setShowAllNotifications(!showAllNotifications)}
+              >
+                {showAllNotifications ? 'Show less' : 'View all notifications'}
               </Button>
             </div>
           </PopoverContent>

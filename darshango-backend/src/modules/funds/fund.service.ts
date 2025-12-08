@@ -16,6 +16,9 @@ export const createFundTransaction = async (projectId: string | undefined, fundD
         proof_file: fundData.proofFile,
         created_by: fundData.createdBy,
         uc_status: fundData.ucStatus || 'Pending',
+        state: fundData.state || null,
+        district: fundData.district || null,
+        agency_id: fundData.agencyId || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -71,6 +74,9 @@ export const updateFundTransaction = async (projectId: string | undefined, fundI
     if (updateData.description) dbUpdate.description = updateData.description;
     if (updateData.proofFile) dbUpdate.proof_file = updateData.proofFile;
     if (updateData.ucStatus) dbUpdate.uc_status = updateData.ucStatus;
+    if (updateData.state) dbUpdate.state = updateData.state;
+    if (updateData.district) dbUpdate.district = updateData.district;
+    if (updateData.agencyId) dbUpdate.agency_id = updateData.agencyId;
 
     const { data, error } = await supabase
         .from('funds')
@@ -116,6 +122,9 @@ const mapFund = (f: any) => ({
     proofFile: f.proof_file,
     createdBy: f.created_by,
     ucStatus: f.uc_status,
+    state: f.state,
+    district: f.district,
+    agencyId: f.agency_id,
     createdAt: f.created_at,
     updatedAt: f.updated_at
 });

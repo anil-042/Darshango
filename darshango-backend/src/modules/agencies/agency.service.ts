@@ -42,10 +42,53 @@ export const getAllAgencies = async (filters: any = {}) => {
         query = query.or(`name.ilike.%${filters.search}%,code.ilike.%${filters.search}%`);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data: agencies, error: agencyError } = await query.order('created_at', { ascending: false });
+    if (agencyError) throw new Error(agencyError.message);
 
-    if (error) throw new Error(error.message);
-    return data.map(mapAgency);
+    // Fetch active projects counts
+    // Note: status 'In Progress' is considered active. Adjust if needed.
+    const { data: activeProjects, error: projectError } = await supabase
+        .from('projects')
+        .select('implementing_agency_id, executing_agency_id')
+        .eq('status', 'In Progress');
+
+    if (projectError) {
+        console.error("Failed to fetch active projects count:", projectError);
+        // Fallback to static column if this fails, or just distinct 0
+    }
+
+    // Aggregate counts
+    const agencyCounts: Record<string, number> = {};
+    if (activeProjects) {
+        activeProjects.forEach((p: any) => {
+            // Count as implementing agency
+            if (p.implementing_agency_id) {
+                agencyCounts[p.implementing_agency_id] = (agencyCounts[p.implementing_agency_id] || 0) + 1;
+            }
+            // Count as executing agency
+            if (p.executing_agency_id) {
+                // Determine if we should count it separately or if it's the same project
+                // For 'Active Projects' count, does the agency handle this project? Yes.
+                // We just need to handle if the same agency is BOTH implementing AND executing the SAME project
+                // In that case, should it count as 1 or 2? Usually 1 project = 1 count.
+                // But simplified: checking if ID differs avoids double counting if logic splits, 
+                // but actually if an agency is both, it's just one project for them.
+
+                // However, simpler logic:
+                if (p.executing_agency_id !== p.implementing_agency_id) {
+                    agencyCounts[p.executing_agency_id] = (agencyCounts[p.executing_agency_id] || 0) + 1;
+                }
+            }
+        });
+    }
+
+    // Merge counts
+    const mergedData = agencies.map((agency: any) => ({
+        ...agency,
+        active_projects: agencyCounts[agency.id] || 0 // Usage of dynamic count
+    }));
+
+    return mergedData.map(mapAgency);
 };
 
 export const updateAgency = async (id: string, updateData: any) => {

@@ -63,10 +63,10 @@ export default function Login() {
 
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-saffron-50 via-white to-india-green-50 p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center text-blue-900">PM-AJAY Dashboard</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center text-primary">PM-AJAY Dashboard</CardTitle>
                     <CardDescription className="text-center">
                         Enter your credentials to access the portal
                     </CardDescription>
@@ -105,7 +105,7 @@ export default function Login() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-medium text-gray-700">Password</label>
-                                <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                                     Forgot password?
                                 </Link>
                             </div>
@@ -122,7 +122,7 @@ export default function Login() {
                             </div>
                         </div>
 
-                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading ? 'Signing in...' : 'Sign In'}
                         </Button>
 
@@ -162,7 +162,7 @@ export default function Login() {
                 </CardContent>
                 <div className="p-6 pt-0 text-center text-sm text-gray-500">
                     Don't have an account?{' '}
-                    <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+                    <Link to="/signup" className="text-primary hover:underline font-medium">
                         Sign up
                     </Link>
                 </div>

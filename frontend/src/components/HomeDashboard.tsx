@@ -14,6 +14,10 @@ import { AlertsFeed } from './AlertsFeed';
 import { useEffect, useState } from 'react';
 import { dashboardService, DashboardStats } from '../services/dashboardService';
 
+import { DashboardCarousel } from './DashboardCarousel';
+import { MarqueeNotification } from './MarqueeNotification';
+import { DashboardBanner } from './DashboardBanner';
+
 export function HomeDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -47,8 +51,8 @@ export function HomeDashboard() {
       title: 'Ongoing Projects',
       value: loading ? '...' : stats?.statusCounts.ongoing.toLocaleString() || '0',
       icon: PlayCircle,
-      color: 'bg-green-50 text-green-600',
-      iconBg: 'bg-green-100',
+      color: 'bg-[var(--color-india-green-50)] text-[var(--color-india-green-600)]',
+      iconBg: 'bg-[var(--color-india-green-100)]',
       link: '/projects?status=In Progress'
     },
     {
@@ -79,17 +83,24 @@ export function HomeDashboard() {
       title: 'Delayed Projects',
       value: loading ? '...' : stats?.statusCounts.delayed.toLocaleString() || '0',
       icon: AlertCircle,
-      color: 'bg-orange-50 text-orange-600',
-      iconBg: 'bg-orange-100',
+      color: 'bg-[var(--color-saffron-50)] text-[var(--color-saffron-600)]',
+      iconBg: 'bg-[var(--color-saffron-100)]',
       link: '/projects?status=Delayed'
     },
   ];
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-gray-900 mb-1">Dashboard Overview</h1>
-        <p className="text-gray-500">PM-AJAY Central Monitoring System</p>
+      <div className="text-center">
+        <p className="text-6xl font-extrabold text-gray-900 mb-4 tracking-tight">WELCOME TO PM-AJAY DASHBOARD</p>
+        <p className="text-xl text-gray-600 font-medium">Pradhan Mantri Anusuchit Jaati Abhyuday Yojna</p>
+      </div>
+
+      {/* Announcements & Banner */}
+      <div className="space-y-6 pb-6">
+        <DashboardBanner />
+        <MarqueeNotification />
+        <DashboardCarousel />
       </div>
 
       {/* KPI Cards */}
@@ -99,7 +110,7 @@ export function HomeDashboard() {
           return (
             <Card
               key={kpi.title}
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              className="card-hover cursor-pointer"
               onClick={() => navigate(kpi.link)}
             >
               <CardContent className="p-4">

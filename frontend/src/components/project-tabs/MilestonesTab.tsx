@@ -81,7 +81,7 @@ export function MilestonesTab({ projectId }: MilestonesTabProps) {
       const milestoneData = {
         ...formData,
         projectId,
-        completionDate: formData.status === 'Completed' ? new Date().toISOString().split('T')[0] : null
+        completionDate: formData.status === 'Completed' ? new Date().toISOString().split('T')[0] : undefined
       };
 
       if (editingMilestone) {

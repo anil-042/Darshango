@@ -11,6 +11,6 @@ router.use(protect);
 router.post('/', authorize('Admin', 'StateNodalOfficer'), validate(fundSchema), fundController.createFundTransaction);
 router.get('/', fundController.getFundTransactions);
 router.put('/:fid', authorize('Admin', 'StateNodalOfficer'), fundController.updateFund);
-router.delete('/:fid', authorize('Admin'), fundController.deleteFund);
+
 
 export default router;

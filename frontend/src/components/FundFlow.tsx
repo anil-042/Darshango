@@ -54,13 +54,7 @@ import { locationData } from '../data/locations';
 
 // Constants
 const STATES = Object.keys(locationData);
-const DISTRICTS = {
-  'Uttar Pradesh': ['Lucknow', 'Varanasi', 'Agra', 'Kanpur'],
-  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik'],
-  'Rajasthan': ['Jaipur', 'Udaipur', 'Jodhpur', 'Kota'],
-  'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'],
-  'Madhya Pradesh': ['Bhopal', 'Indore', 'Gwalior', 'Jabalpur']
-};
+
 
 export function FundFlow() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -81,7 +75,6 @@ export function FundFlow() {
 
   // CRUD States
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
-  const [txnToDelete, setTxnToDelete] = useState<{ id: string, projectId: string } | null>(null);
   const [txnToView, setTxnToView] = useState<Transaction | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -179,7 +172,7 @@ export function FundFlow() {
         break;
       case 'District':
         nextLevel = 'Agency';
-        txType = 'District Allocation';
+        txType = 'Agency Release';
         break;
       case 'Agency':
         nextLevel = 'Ground';
@@ -287,18 +280,7 @@ export function FundFlow() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!txnToDelete) return;
-    try {
-      await api.transactions.delete(txnToDelete.id, txnToDelete.projectId);
-      setTxnToDelete(null);
-      fetchData();
-      toast.success('Transaction deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete transaction', error);
-      toast.error('Failed to delete transaction');
-    }
-  };
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -347,13 +329,13 @@ export function FundFlow() {
     if (!district) {
       // Return total for all districts
       return transactions
-        .filter(t => t.type === 'District Allocation' && t.status !== 'Failed')
+        .filter(t => t.type === 'State Transfer' && t.status !== 'Failed')
         .reduce((sum, t) => sum + t.amount, 0);
     }
     // Return funds for specific district
     return transactions
       .filter(t =>
-        t.type === 'District Allocation' &&
+        t.type === 'State Transfer' &&
         t.district === district &&
         t.status !== 'Failed'
       )
@@ -473,7 +455,7 @@ export function FundFlow() {
                           <SelectValue placeholder="Select District" />
                         </SelectTrigger>
                         <SelectContent>
-                          {formData.state && DISTRICTS[formData.state as keyof typeof DISTRICTS]?.map(d => (
+                          {formData.state && locationData[formData.state]?.map(d => (
                             <SelectItem key={d} value={d}>{d}</SelectItem>
                           ))}
                         </SelectContent>
@@ -829,16 +811,6 @@ export function FundFlow() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          {canEdit && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setTxnToDelete({ id: txn.id, projectId: txn.projectId })}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -950,18 +922,7 @@ export function FundFlow() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!txnToDelete} onOpenChange={() => setTxnToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Transaction?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button variant="destructive" onClick={handleDelete}>Delete</Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 }

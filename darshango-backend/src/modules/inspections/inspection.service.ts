@@ -6,20 +6,67 @@ import { createNotification } from '../notifications/notification.service';
 export const createInspection = async (projectId: string, inspectionData: any) => {
     console.log('Creating inspection for project:', projectId, 'Data:', inspectionData);
 
+    // Fetch Project Details for Title and Location
+    const { data: project } = await supabase
+        .from('projects')
+        .select('title, district, state')
+        .eq('project_id', projectId) // Assuming projectId passes usage 'project_id' from DB, but let's check input
+        // Wait, projectId arg is usually the UUID. Let's check query.
+        // Actually, let's just query by the passed ID safely.
+        .eq('project_id', projectId)
+        .maybeSingle();
+
+    // Fallback if project search fails or title missing
+    let projectTitle = 'Project';
+    let projectLocation = '';
+
+    if (project) {
+        if (project.title) {
+            projectTitle = project.title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+        }
+        if (project.district || project.state) {
+            projectLocation = [project.district, project.state].filter(Boolean).join(', ');
+        }
+    } else {
+        // Try querying by 'id' (UUID) if 'project_id' (string ID) failed
+        const { data: projectByUuid } = await supabase
+            .from('projects')
+            .select('title, district, state')
+            .eq('id', projectId)
+            .maybeSingle();
+        if (projectByUuid) {
+            if (projectByUuid.title) {
+                projectTitle = projectByUuid.title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+            }
+            if (projectByUuid.district || projectByUuid.state) {
+                projectLocation = [projectByUuid.district, projectByUuid.state].filter(Boolean).join(', ');
+            }
+        }
+    }
+
+    // Get Count of existing inspections for this project
+    const { count } = await supabase
+        .from('inspections')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId);
+
+    const nextSequence = (count || 0) + 1;
+    const readableId = `${projectTitle}_inspection-${nextSequence}`;
+
     const dbInspection = {
         project_id: projectId,
         inspector_name: inspectionData.inspectorName,
         date: inspectionData.date,
         status: inspectionData.status,
         rating: inspectionData.rating,
-        // severity: inspectionData.severity, // Removed: Not in DB
         comments: inspectionData.comments,
         findings: inspectionData.findings,
-        checklist: inspectionData.checklist, // JSONB
+        checklist: inspectionData.checklist,
         geo_location_lat: inspectionData.geoLocation?.lat,
         geo_location_lng: inspectionData.geoLocation?.lng,
         images: inspectionData.images,
-        // inspection_id: inspectionData.id, // Removed: Not in DB
+        inspection_id: readableId, // Store formatted ID
+        location: projectLocation, // Auto-populated location
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -107,7 +154,6 @@ export const updateInspection = async (projectId: string, inspectionId: string, 
     if (updateData.date) dbUpdate.date = updateData.date;
     if (updateData.status) dbUpdate.status = updateData.status;
     if (updateData.rating) dbUpdate.rating = updateData.rating;
-    // if (updateData.severity) dbUpdate.severity = updateData.severity; // Removed
     if (updateData.comments) dbUpdate.comments = updateData.comments;
     if (updateData.findings) dbUpdate.findings = updateData.findings;
     if (updateData.checklist) dbUpdate.checklist = updateData.checklist;
@@ -116,8 +162,8 @@ export const updateInspection = async (projectId: string, inspectionId: string, 
         dbUpdate.geo_location_lng = updateData.geoLocation.lng;
     }
     if (updateData.detailedReview) dbUpdate.review = updateData.detailedReview;
-    // if (updateData.customId) dbUpdate.inspection_id = updateData.customId; // Removed
     if (updateData.images) dbUpdate.images = updateData.images;
+    if (updateData.location) dbUpdate.location = updateData.location;
 
     const { data, error } = await supabase
         .from('inspections')
@@ -156,11 +202,11 @@ const mapInspection = (i: any) => ({
     date: i.date,
     status: i.status,
     rating: i.rating,
-    // severity: i.severity, // Removed
     comments: i.comments,
     findings: i.findings,
     detailedReview: i.review,
-    // customId: i.inspection_id, // Removed
+    customId: i.inspection_id, // Map readable ID
+    location: i.location,
     checklist: i.checklist,
     geoLocation: {
         lat: i.geo_location_lat,

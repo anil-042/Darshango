@@ -73,7 +73,7 @@ export interface Inspection {
     customId?: string;
     detailedReview?: string;
     images?: string[];
-    images?: string[];
+
 }
 
 export interface Document {
@@ -129,6 +129,9 @@ export interface User {
     state?: string;
     district?: string;
     agencyId?: string;
-    status: 'Active' | 'Pending' | 'Inactive';
+    status: 'Active' | 'Pending' | 'Inactive' | 'PendingApproval';
     password?: string; // For mock auth only
+    phone?: string;
+    department?: string;
+    createdAt?: string;
 }

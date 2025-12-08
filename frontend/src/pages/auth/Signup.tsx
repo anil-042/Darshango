@@ -70,10 +70,10 @@ export default function Signup() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-saffron-50 via-white to-india-green-50 p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center text-blue-900">
+                    <CardTitle className="text-2xl font-bold text-center text-primary">
                         {step === 'verification' ? 'Verify Email' : 'Create Account'}
                     </CardTitle>
                     <CardDescription className="text-center">
@@ -160,7 +160,7 @@ export default function Signup() {
                                 </div>
                             </div>
 
-                            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+                            <Button type="submit" className="w-full" disabled={isLoading}>
                                 {isLoading ? 'Processing...' : 'Continue'}
                             </Button>
                         </form>
@@ -186,7 +186,7 @@ export default function Signup() {
                                     required
                                 />
                             </div>
-                            <Button type="submit" className="w-full !bg-green-600 hover:!bg-green-700 !text-white" disabled={isLoading}>
+                            <Button type="submit" className="w-full bg-[var(--color-india-green-600)] hover:bg-[var(--color-india-green-600)]/90 text-white" disabled={isLoading}>
                                 {isLoading ? 'Verifying...' : 'Verify Email'}
                             </Button>
                         </form>
@@ -210,7 +210,7 @@ export default function Signup() {
                 {step === 'details' && (
                     <div className="p-6 pt-0 text-center text-sm text-gray-500">
                         Already have an account?{' '}
-                        <Link to="/login" className="text-blue-600 hover:underline font-medium">
+                        <Link to="/login" className="text-primary hover:underline font-medium">
                             Sign in
                         </Link>
                     </div>

@@ -46,22 +46,22 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <div
       className={cn(
-        "bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
+        "bg-gradient-to-b from-[var(--color-saffron-50)] via-white to-[var(--color-india-green-50)] border-r border-orange-100 flex flex-col transition-all duration-300 shadow-sm",
         collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="p-4 flex items-center justify-between border-b border-gray-100">
+      <div className="p-4 flex items-center justify-between border-b border-orange-100/50">
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shadow-md">
               PM
             </div>
-            <span className="font-bold text-xl text-gray-800">PM-AJAY</span>
+            <span className="font-bold text-xl text-primary tracking-tight">PM-AJAY</span>
           </div>
         )}
         <button
           onClick={onToggle}
-          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
+          className="p-1.5 rounded-lg hover:bg-orange-100 text-gray-500 hover:text-orange-600 transition-colors"
         >
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -77,22 +77,27 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative overflow-hidden",
                 isActive
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                collapsed && "justify-center px-2"
+                  ? "bg-orange-100 text-orange-700 shadow-sm font-medium"
+                  : "text-gray-600 hover:bg-orange-50 hover:text-orange-700 hover:pl-4",
+                collapsed && "justify-center px-2 hover:pl-2"
               )}
             >
-              <Icon size={20} />
-              {!collapsed && <span className="font-medium">{item.label}</span>}
+              {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500 rounded-r-full" />}
+              <Icon size={20} className={cn("transition-transform duration-200", isActive ? "scale-110" : "group-hover:scale-110")} />
+              {!collapsed && <span className="">{item.label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
-        {/* Need Help button removed */}
+      <div className="p-4 border-t border-green-100/50">
+        {!collapsed && (
+          <div className="text-xs text-center text-gray-400">
+            v1.0.0 • <span className="text-orange-400">Secure</span>
+          </div>
+        )}
       </div>
     </div>
   );

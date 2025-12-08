@@ -64,26 +64,26 @@
       "View": true,
       "Create": true,
       "Edit": true,
-      "Delete": true
+      "Delete": false
     },
     "Projects": {
       "View": true,
       "Create": true,
       "Edit": true,
-      "Delete": true,
-      "Approve": true
+      "Delete": false,
+      "Approve": false
     },
     "Fund Flow": {
       "View": true,
       "Create": true,
-      "Edit": true,
-      "Approve": true
+      "Edit": false,
+      "Approve": false
     },
     "Monitoring": {
       "View": true,
       "Create": true,
-      "Edit": true,
-      "Submit": true
+      "Edit": false,
+      "Submit": false
     },
     "Communication": {
       "View": true,

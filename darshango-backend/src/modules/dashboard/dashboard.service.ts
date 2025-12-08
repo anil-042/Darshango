@@ -13,8 +13,20 @@ export const getDashboardStats = async (filters: any = {}) => {
     const ongoingProjects = projects.filter((p: any) => p.status === 'In Progress').length;
     const delayedProjects = projects.filter((p: any) => p.status === 'Delayed').length;
 
-    const totalFundsReleased = projects.reduce((acc: number, p: any) => acc + (p.total_funds_released || 0), 0);
-    const totalFundsUtilized = projects.reduce((acc: number, p: any) => acc + (p.total_funds_utilized || 0), 0);
+    // Global Fund Stats
+    const { data: fundsData, error: fundsError } = await supabase
+        .from('funds')
+        .select('amount, type');
+
+    if (fundsError) throw new Error(fundsError.message);
+
+    const totalFundsReleased = fundsData
+        .filter((f: any) => f.type === 'Agency Release' || f.type === 'District Allocation')
+        .reduce((acc: number, f: any) => acc + (f.amount || 0), 0);
+
+    const totalFundsUtilized = fundsData
+        .filter((f: any) => f.type === 'Utilization')
+        .reduce((acc: number, f: any) => acc + (f.amount || 0), 0);
 
     const pendingUCs = projects.reduce((acc: number, p: any) => acc + (p.pending_ucs || 0), 0);
 

@@ -17,7 +17,10 @@ export const createMeeting = async (meeting: Meeting): Promise<Meeting> => {
         .select()
         .single();
 
-    if (error) throw new Error(error.message);
+    if (error) {
+        console.error("SUPABASE CREATE MEETING ERROR:", error);
+        throw new Error(error.message);
+    }
 
     return mapMeeting(data);
 };

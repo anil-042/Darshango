@@ -49,7 +49,7 @@ export function InspectionsTab({ projectId }: InspectionsTabProps) {
     status: 'Scheduled',
     rating: 'Pending',
     comments: '',
-    location: ''
+    // location: '' // Auto-populated from project
   });
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export function InspectionsTab({ projectId }: InspectionsTabProps) {
         status: formData.status as any,
         rating: formData.rating as any,
         comments: formData.comments,
-        location: formData.location
+        // location: formData.location // Backend auto-populates
       };
 
       await api.inspections.create(newInspection);
@@ -90,7 +90,7 @@ export function InspectionsTab({ projectId }: InspectionsTabProps) {
         status: 'Scheduled',
         rating: 'Pending',
         comments: '',
-        location: ''
+        // location: ''
       });
     } catch (error) {
       console.error('Failed to create inspection', error);
@@ -163,15 +163,7 @@ export function InspectionsTab({ projectId }: InspectionsTabProps) {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Location</label>
-                  <Input
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="e.g. Village Rampur"
-                    required
-                  />
-                </div>
+
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
@@ -238,7 +230,7 @@ export function InspectionsTab({ projectId }: InspectionsTabProps) {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-gray-900">{inspection.id}</h4>
+                    <h4 className="text-gray-900 font-medium">#{inspection.customId || inspection.id.substring(0, 8).toUpperCase()}</h4>
                     <Badge className={getStatusColor(inspection.status)}>{inspection.status}</Badge>
                     <Badge className={getRatingColor(inspection.rating)}>{inspection.rating}</Badge>
                   </div>

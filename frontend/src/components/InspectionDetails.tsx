@@ -7,11 +7,12 @@ import { Checkbox } from './ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { ArrowLeft, MapPin, Calendar, User, Image as ImageIcon, Download, Edit2, Save, X } from 'lucide-react';
 import { api } from '../services/api';
-import { Inspection } from '../types';
+import { Inspection, Project } from '../types';
 
 export function InspectionDetails() {
   const { id } = useParams<{ id: string }>();
   const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [isEditingReview, setIsEditingReview] = useState(false);
@@ -25,6 +26,14 @@ export function InspectionDetails() {
         const data = await api.inspections.getById(id);
         setInspection(data);
         setReviewText(data.detailedReview || '');
+
+        // Fetch Project to get readable ID
+        try {
+          const projectData = await api.projects.getById(data.projectId);
+          setProject(projectData || null);
+        } catch (projError) {
+          console.error('Failed to fetch project details', projError);
+        }
       } catch (error) {
         console.error('Failed to fetch inspection details', error);
       } finally {
@@ -154,7 +163,7 @@ export function InspectionDetails() {
                 <Badge className={getStatusColor(inspection.status)}>{inspection.status}</Badge>
                 <Badge className={getRatingColor(inspection.rating)}>{inspection.rating}</Badge>
               </div>
-              <p className="text-gray-600 mb-4">Project ID: {inspection.projectId}</p>
+              <p className="text-gray-600 mb-4">Project ID: <span className="font-medium text-gray-900">{project?.projectId || inspection.projectId}</span></p>
             </div>
             <Button className="gap-2">
               <Download className="w-4 h-4" />

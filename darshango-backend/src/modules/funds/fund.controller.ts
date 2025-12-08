@@ -40,14 +40,4 @@ export const updateFund = async (req: Request, res: Response) => {
     }
 };
 
-export const deleteFund = async (req: Request, res: Response) => {
-    try {
-        const projectId = req.params.id || req.body.projectId || req.query.projectId as string;
-        const fundId = req.params.fid;
 
-        await fundService.deleteFundTransaction(projectId, fundId);
-        return successResponse(res, null, 'Fund transaction deleted successfully');
-    } catch (error: any) {
-        return errorResponse(res, error.message, 500);
-    }
-};

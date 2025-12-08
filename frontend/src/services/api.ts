@@ -178,6 +178,10 @@ export const api = {
             const response = await axiosInstance.get('/users');
             return response.data.data;
         },
+        getById: async (id: string): Promise<User> => {
+            const response = await axiosInstance.get(`/users/${id}`);
+            return response.data.data;
+        },
         create: async (user: Omit<User, 'id'>): Promise<User> => {
             const response = await axiosInstance.post('/users', user);
             return response.data.data;

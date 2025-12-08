@@ -16,7 +16,10 @@ export const createMessage = async (projectId: string, message: Message): Promis
         .select()
         .single();
 
-    if (error) throw new Error(error.message);
+    if (error) {
+        console.error("SUPABASE CREATE MESSAGE ERROR:", error);
+        throw new Error(error.message);
+    }
 
     return {
         id: data.id,
