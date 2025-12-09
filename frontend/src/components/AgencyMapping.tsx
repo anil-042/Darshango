@@ -13,7 +13,9 @@ import {
     Trash2,
     Globe,
     FileText,
-    X
+    X,
+    Check,
+    ChevronsUpDown
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Agency } from '../types';
@@ -23,6 +25,19 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "./ui/command"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "./ui/popover"
 import {
     Table,
     TableBody,
@@ -43,6 +58,9 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    DropdownMenuCheckboxItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
 } from './ui/dropdown-menu';
 import {
     AlertDialog,
@@ -57,6 +75,13 @@ import {
 import { Textarea } from './ui/textarea';
 
 import { locationData } from '../data/locations';
+import { cn } from './ui/utils';
+
+const AVAILABLE_COMPONENTS = [
+    "Adarsh Gram",
+    "GIA",
+    "Hostel"
+];
 
 interface AgencyFormProps {
     formData: Partial<Agency>;
@@ -108,6 +133,74 @@ const AgencyForm = ({ formData, setFormData, onSubmit, submitLabel }: AgencyForm
                     </SelectContent>
                 </Select>
             </div>
+        </div>
+
+
+
+        <div className="space-y-2">
+            <label className="text-sm font-medium">Components Handled</label>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between min-h-[40px] h-auto"
+                    >
+                        {formData.components && formData.components.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                                {formData.components.map((component) => (
+                                    <Badge key={component} variant="secondary" className="mr-1">
+                                        {component}
+                                        <X
+                                            className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const newComponents = formData.components?.filter(c => c !== component);
+                                                setFormData({ ...formData, components: newComponents });
+                                            }}
+                                        />
+                                    </Badge>
+                                ))}
+                            </div>
+                        ) : (
+                            <span className="text-muted-foreground">Select components...</span>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                    <Command>
+                        <CommandInput placeholder="Search components..." />
+                        <CommandList>
+                            <CommandEmpty>No component found.</CommandEmpty>
+                            <CommandGroup>
+                                {AVAILABLE_COMPONENTS.map((component) => (
+                                    <CommandItem
+                                        key={component}
+                                        value={component}
+                                        onSelect={() => {
+                                            const currentComponents = formData.components || [];
+                                            const isSelected = currentComponents.includes(component);
+                                            const newComponents = isSelected
+                                                ? currentComponents.filter(c => c !== component)
+                                                : [...currentComponents, component];
+                                            setFormData({ ...formData, components: newComponents });
+                                        }}
+                                    >
+                                        <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                (formData.components || []).includes(component) ? "opacity-100" : "opacity-0"
+                                            )}
+                                        />
+                                        {component}
+                                    </CommandItem>
+                                ))}
+                            </CommandGroup>
+                        </CommandList>
+                    </Command>
+                </PopoverContent>
+            </Popover>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -173,6 +266,15 @@ const AgencyForm = ({ formData, setFormData, onSubmit, submitLabel }: AgencyForm
                     </SelectContent>
                 </Select>
             </div>
+        </div>
+
+        <div className="space-y-2">
+            <label className="text-sm font-medium">Village</label>
+            <Input
+                value={formData.village || ''}
+                onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+                placeholder="Enter Village Name"
+            />
         </div>
 
         <div className="space-y-2">
@@ -247,7 +349,7 @@ const AgencyForm = ({ formData, setFormData, onSubmit, submitLabel }: AgencyForm
         </div>
 
         <Button type="submit" className="w-full">{submitLabel}</Button>
-    </form>
+    </form >
 );
 
 export function AgencyMapping() {
@@ -261,6 +363,7 @@ export function AgencyMapping() {
     const [filterState, setFilterState] = useState('all');
     const [filterDistrict, setFilterDistrict] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
+    const [filterComponents, setFilterComponents] = useState<string[]>([]);
     const [showFilters, setShowFilters] = useState(false);
 
     // CRUD States
@@ -278,6 +381,7 @@ export function AgencyMapping() {
         roleType: 'Implementing',
         state: '',
         district: '',
+        village: '',
         contactPerson: '',
         designation: '',
         phone: '',
@@ -360,6 +464,7 @@ export function AgencyMapping() {
             roleType: 'Implementing',
             state: '',
             district: '',
+            village: '',
             contactPerson: '',
             designation: '',
             phone: '',
@@ -388,13 +493,15 @@ export function AgencyMapping() {
         const matchesSearch =
             (agency.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
             (agency.code?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-            (agency.state?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+            (agency.state?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+            (agency.village?.toLowerCase() || '').includes(searchQuery.toLowerCase());
 
         const matchesState = filterState === 'all' || agency.state === filterState;
         const matchesDistrict = filterDistrict === 'all' || agency.district === filterDistrict;
         const matchesCategory = filterCategory === 'all' || agency.category === filterCategory;
+        const matchesComponents = filterComponents.length === 0 || filterComponents.some(c => (agency.components || []).includes(c));
 
-        return matchesSearch && matchesState && matchesDistrict && matchesCategory;
+        return matchesSearch && matchesState && matchesDistrict && matchesCategory && matchesComponents;
     });
 
     const clearFilters = () => {
@@ -402,6 +509,7 @@ export function AgencyMapping() {
         setFilterState('all');
         setFilterDistrict('all');
         setFilterCategory('all');
+        setFilterComponents([]);
     };
 
     const hasActiveFilters = searchQuery !== '' || filterState !== 'all' || filterDistrict !== 'all' || filterCategory !== 'all';
@@ -472,7 +580,7 @@ export function AgencyMapping() {
                     </div>
 
                     {showFilters && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
                             <div>
                                 <label className="text-gray-700 mb-2 block">State</label>
                                 <Select value={filterState} onValueChange={(val) => {
@@ -533,6 +641,38 @@ export function AgencyMapping() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            <div>
+                                <label className="text-gray-700 mb-2 block">Components</label>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-between">
+                                            {filterComponents.length > 0
+                                                ? `${filterComponents.length} selected`
+                                                : "Select Components"}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56">
+                                        <DropdownMenuLabel>Components</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        {AVAILABLE_COMPONENTS.map((component) => (
+                                            <DropdownMenuCheckboxItem
+                                                key={component}
+                                                checked={filterComponents.includes(component)}
+                                                onCheckedChange={(checked) => {
+                                                    setFilterComponents(
+                                                        checked
+                                                            ? [...filterComponents, component]
+                                                            : filterComponents.filter((c) => c !== component)
+                                                    );
+                                                }}
+                                            >
+                                                {component}
+                                            </DropdownMenuCheckboxItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </div>
                     )}
 
@@ -543,6 +683,8 @@ export function AgencyMapping() {
                                     <TableHead>Agency Code</TableHead>
                                     <TableHead>Agency Name</TableHead>
                                     <TableHead>Category</TableHead>
+                                    <TableHead>District</TableHead>
+                                    <TableHead>Village</TableHead>
                                     <TableHead>Role Type</TableHead>
                                     <TableHead>Components</TableHead>
                                     <TableHead>Active Projects</TableHead>
@@ -571,6 +713,8 @@ export function AgencyMapping() {
                                             <TableCell>
                                                 <Badge variant="outline">{agency.category}</Badge>
                                             </TableCell>
+                                            <TableCell>{agency.district || '-'}</TableCell>
+                                            <TableCell>{agency.village || '-'}</TableCell>
                                             <TableCell>{agency.roleType}</TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap gap-1">
@@ -661,6 +805,10 @@ export function AgencyMapping() {
                                     <div>
                                         <p className="text-gray-500 mb-1">District</p>
                                         <p className="text-gray-900">{selectedAgency.district}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500 mb-1">Village</p>
+                                        <p className="text-gray-900">{selectedAgency.village || '-'}</p>
                                     </div>
                                 </div>
 

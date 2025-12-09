@@ -7,7 +7,8 @@ import {
     Document,
     Alert,
     User,
-    Milestone
+    Milestone,
+    Grievance
 } from '../types';
 
 // API Service
@@ -269,5 +270,29 @@ export const api = {
             const response = await axiosInstance.get('/notifications');
             return response.data.data || [];
         }
+    },
+
+    // GRIEVANCES
+    grievances: {
+        getAll: async (params?: any): Promise<Grievance[]> => {
+            const response = await axiosInstance.get('/grievances', { params });
+            return response.data.data;
+        },
+        getById: async (id: string): Promise<Grievance> => {
+            const response = await axiosInstance.get(`/grievances/${id}`);
+            return response.data.data;
+        },
+        create: async (grievance: Partial<Grievance>): Promise<Grievance> => {
+            const response = await axiosInstance.post('/grievances', grievance);
+            return response.data.data;
+        },
+        update: async (id: string, updates: Partial<Grievance>): Promise<Grievance> => {
+            const response = await axiosInstance.patch(`/grievances/${id}`, updates);
+            return response.data.data;
+        },
+        delete: async (id: string): Promise<void> => {
+            await axiosInstance.delete(`/grievances/${id}`);
+        }
     }
 };
+

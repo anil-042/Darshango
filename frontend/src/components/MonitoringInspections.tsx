@@ -97,7 +97,7 @@ export function MonitoringInspections() {
     const matchesSearch =
       inspection.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inspection.projectId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inspection.inspectorId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inspection.inspectorName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (project?.title && project.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesStatus = filterStatus === 'all' || inspection.status === filterStatus;
@@ -278,7 +278,7 @@ export function MonitoringInspections() {
                         </TableCell>
                         <TableCell>{project?.state || '-'}</TableCell>
                         <TableCell>{project?.district || '-'}</TableCell>
-                        <TableCell>{inspection.inspectorId}</TableCell>
+                        <TableCell>{inspection.inspectorName}</TableCell>
                         <TableCell className="text-gray-600">{inspection.date?.split('T')[0]}</TableCell>
                         <TableCell>
                           <Badge className={

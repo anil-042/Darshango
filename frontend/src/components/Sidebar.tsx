@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Users,
-  MessageSquare
+  MessageSquare,
+  Flag
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,6 +34,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { icon: IndianRupee, label: 'Fund Flow', path: '/fund-flow', module: 'Fund Flow' },
     { icon: ClipboardCheck, label: 'Monitoring', path: '/monitoring', module: 'Monitoring' },
     { icon: MessageSquare, label: 'Communication', path: '/communication', module: 'Communication' },
+    { icon: Flag, label: 'Grievances', path: '/grievances', module: 'Grievances' },
     { icon: AlertTriangle, label: 'Alerts', path: '/alerts', module: 'Alerts' },
     { icon: BarChart3, label: 'Reports', path: '/reports', module: 'Reports' },
     { icon: Settings, label: 'Admin Settings', path: '/admin', module: 'Admin' },

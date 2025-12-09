@@ -8,6 +8,7 @@ export const createAgency = async (agencyData: any) => {
         role_type: agencyData.roleType,
         state: agencyData.state,
         district: agencyData.district,
+        village: agencyData.village,
         address: agencyData.address,
         contact_person: agencyData.contactPerson,
         designation: agencyData.designation,
@@ -39,7 +40,7 @@ export const getAllAgencies = async (filters: any = {}) => {
 
     // Global Search Filter
     if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,code.ilike.%${filters.search}%`);
+        query = query.or(`name.ilike.%${filters.search}%,code.ilike.%${filters.search}%,village.ilike.%${filters.search}%`);
     }
 
     const { data: agencies, error: agencyError } = await query.order('created_at', { ascending: false });
@@ -103,6 +104,7 @@ export const updateAgency = async (id: string, updateData: any) => {
     if (updateData.roleType) dbUpdate.role_type = updateData.roleType;
     if (updateData.state) dbUpdate.state = updateData.state;
     if (updateData.district) dbUpdate.district = updateData.district;
+    if (updateData.village) dbUpdate.village = updateData.village;
     if (updateData.address) dbUpdate.address = updateData.address;
     if (updateData.contactPerson) dbUpdate.contact_person = updateData.contactPerson;
     if (updateData.designation) dbUpdate.designation = updateData.designation;
@@ -145,6 +147,7 @@ const mapAgency = (a: any) => ({
     roleType: a.role_type,
     state: a.state,
     district: a.district,
+    village: a.village,
     address: a.address,
     contactPerson: a.contact_person,
     designation: a.designation,

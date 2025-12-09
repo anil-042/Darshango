@@ -1,0 +1,16 @@
+{
+  "columns": [
+    "id",
+    "created_by",
+    "project_id",
+    "type",
+    "priority",
+    "status",
+    "description",
+    "resolution",
+    "assigned_to",
+    "attachments",
+    "created_at",
+    "updated_at"
+  ]
+}

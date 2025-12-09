@@ -19,6 +19,7 @@ export const createProject = async (projectData: any) => {
         location_lng: projectData.location?.lng,
         tags: projectData.tags,
         description: projectData.description,
+        village: projectData.village,
         total_funds_released: 0,
         total_funds_utilized: 0,
         pending_ucs: 0,
@@ -50,7 +51,7 @@ export const getAllProjects = async (filters: any = {}) => {
 
     // Global Search Filter
     if (filters.search) {
-        query = query.or(`title.ilike.%${filters.search}%,project_id.ilike.%${filters.search}%`);
+        query = query.or(`title.ilike.%${filters.search}%,project_id.ilike.%${filters.search}%,village.ilike.%${filters.search}%`);
     }
 
     const { data, error } = await query.order('updated_at', { ascending: false });
@@ -98,6 +99,7 @@ export const updateProject = async (id: string, updateData: any) => {
     }
     if (updateData.tags) dbUpdate.tags = updateData.tags;
     if (updateData.description) dbUpdate.description = updateData.description;
+    if (updateData.village) dbUpdate.village = updateData.village;
 
     const { data, error } = await supabase
         .from('projects')
@@ -195,6 +197,7 @@ const mapProject = (p: any) => ({
     },
     tags: p.tags,
     description: p.description,
+    village: p.village,
     totalFundsReleased: p.total_funds_released,
     totalFundsUtilized: p.total_funds_utilized,
     pendingUCs: p.pending_ucs,

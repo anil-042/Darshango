@@ -22,6 +22,8 @@ import { AlertsEscalations } from './components/AlertsEscalations';
 import { Reports } from './components/Reports';
 import { Communication } from './components/Communication';
 import { Admin } from './components/Admin';
+import { GrievanceList } from './components/grievances/GrievanceList';
+import { GrievanceDetail } from './components/grievances/GrievanceDetail';
 
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -117,7 +119,17 @@ export default function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/grievances" element={
+            <ProtectedRoute>
+              <Layout><GrievanceList /></Layout>
+            </ProtectedRoute>
+          } />
 
+          <Route path="/grievances/:id" element={
+            <ProtectedRoute>
+              <Layout><GrievanceDetail /></Layout>
+            </ProtectedRoute>
+          } />
 
           <Route path="/alerts" element={
             <ProtectedRoute>

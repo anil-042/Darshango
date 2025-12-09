@@ -7,11 +7,13 @@ export interface Project {
     executingAgencyId: string;
     state: string;
     district: string;
+    village?: string;
     startDate: string;
     endDate: string;
     status: 'In Progress' | 'Completed' | 'Under Review' | 'Delayed';
     progress: number;
     estimatedCost: number;
+    description?: string;
     location?: { lat: number; lng: number };
 }
 
@@ -23,6 +25,7 @@ export interface Agency {
     roleType: 'Implementing' | 'Executing';
     state: string;
     district: string;
+    village?: string;
     address: string;
     contactPerson: string;
     designation?: string;
@@ -63,7 +66,7 @@ export interface Inspection {
     projectId: string;
     inspectorName: string;
     date: string;
-    status: 'Scheduled' | 'Completed' | 'Pending';
+    status: 'Scheduled' | 'Completed' | 'Pending' | 'Reported';
     rating: 'Good' | 'Satisfactory' | 'Needs Attention' | 'Pending';
     comments: string;
     inspectorId?: string;
@@ -134,4 +137,44 @@ export interface User {
     phone?: string;
     department?: string;
     createdAt?: string;
+}
+
+export interface Grievance {
+    id: string;
+    projectId?: string; // Optional for general
+    projectName?: string;
+    // Common
+    description: string;
+    priority: 'High' | 'Normal' | 'Low';
+    status: 'Pending' | 'Assigned' | 'In Review' | 'Resolution Submitted' | 'Closed' | 'Rejected' | 'Reopened';
+    source: 'Public' | 'Agency User' | 'Inspector' | 'District Officer' | 'State Officer';
+    attachments: string[];
+
+    // Project Mode
+    type?: 'Project Delay' | 'Fund Misuse' | 'Quality Issue' | 'Corruption' | 'Inspection' | 'Agency Conflict' | 'Other';
+    component?: string;
+    district?: string;
+
+    // General Mode
+    isGeneral: boolean;
+    category?: 'Fund Delay' | 'Clarification' | 'Policy Issue' | 'System Issue' | 'Other';
+    level?: 'Central → State' | 'State → Central' | 'State → District' | 'District → State';
+
+    // Assignment & Workflow
+    assignedTo?: string;
+    assigneeName?: string;
+    resolution?: string;
+    verifiedBy?: string;
+    verifiedAt?: string;
+    reopenedAt?: string;
+
+    // SLA
+    slaDueDate?: string;
+    slaStatus?: 'On Track' | 'Overdue' | 'Near Breach';
+
+    // Meta
+    createdBy: string;
+    creatorName?: string;
+    createdAt: string;
+    updatedAt: string;
 }

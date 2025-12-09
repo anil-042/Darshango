@@ -18,6 +18,7 @@ import { Project, Agency } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardHeader } from './ui/card';
 import {
@@ -52,6 +53,12 @@ import {
 } from './ui/alert-dialog';
 import { locationData } from '../data/locations';
 import { districtCoordinates, stateCoordinates } from '../data/districtCoordinates';
+
+const PROJECT_DESCRIPTIONS = {
+  "Adarsh Gram": "A holistic village development project focused on transforming the identified settlement into an Adarsh Gram (Model Village) through integrated infrastructure upgrading, improved public service delivery, and sustainable community development initiatives. The project aims to enhance the overall quality of life by providing modern amenities, strengthening civic infrastructure, and promoting inclusive socio-economic growth.",
+  "GIA": "A Grant-in-Aid initiative designed to support accredited NGOs and institutions in delivering high-impact social programs that empower marginalized communities. The project focuses on capacity building, educational upliftment, skill training, awareness campaigns, and welfare activities aligned with PM-AJAY scheme guidelines. Through structured support, the project aims to strengthen community engagement and promote inclusive growth.",
+  "Hostel": "A dedicated infrastructure development project aimed at constructing or upgrading hostel facilities for students belonging to Scheduled Caste communities. The project ensures access to safe, secure, and well-equipped accommodation that supports academic continuity and holistic development. The hostel will include essential amenities such as dormitories, study rooms, sanitation units, dining facilities, and recreational areas."
+};
 
 interface ProjectManagementProps {
   component?: 'Adarsh Gram' | 'GIA' | 'Hostel';
@@ -104,6 +111,23 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component, 
       }
     });
   };
+
+  useEffect(() => {
+    // Auto-populate description if it's empty or matches one of the default descriptions
+    const currentDescription = formData.description;
+    const component = formData.component as keyof typeof PROJECT_DESCRIPTIONS;
+
+    if (component && PROJECT_DESCRIPTIONS[component]) {
+      const isDefaultDescription = Object.values(PROJECT_DESCRIPTIONS).includes(currentDescription || '');
+
+      if (!currentDescription || isDefaultDescription) {
+        setFormData({
+          ...formData,
+          description: PROJECT_DESCRIPTIONS[component]
+        });
+      }
+    }
+  }, [formData.component]);
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 mt-6">
@@ -264,6 +288,29 @@ const ProjectForm = ({ formData, setFormData, onSubmit, submitLabel, component, 
             </SelectContent>
           </Select>
         </div>
+
+      </div>
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Village</label>
+          <Input
+            value={formData.village || ''}
+            onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+            placeholder="Enter Village Name"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Project Description</label>
+          <Textarea
+            value={formData.description || ''}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="h-32"
+            placeholder="Project description..."
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -348,6 +395,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
     component: component || 'Adarsh Gram',
     state: '',
     district: '',
+    village: '',
     status: 'In Progress',
     estimatedCost: 0,
     progress: 0,
@@ -355,6 +403,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
     executingAgencyId: '',
     startDate: '',
     endDate: '',
+    description: '',
     location: { lat: 0, lng: 0 }
   });
 
@@ -403,6 +452,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
         executingAgencyId: '',
         startDate: '',
         endDate: '',
+        description: '',
         projectId: ''
       });
       toast.success('Project created successfully');
@@ -462,7 +512,8 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
     const matchesComponentFilter = componentFilter === 'all' || project.component === componentFilter;
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.projectId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.id.toLowerCase().includes(searchQuery.toLowerCase());
+      project.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.village?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
     const matchesState = stateFilter === 'all' || project.state === stateFilter;
     const matchesDistrict = districtFilter === 'all' || project.district === districtFilter;
@@ -618,7 +669,7 @@ export function ProjectManagement({ component }: ProjectManagementProps) {
                     <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {project.district}, {project.state}
+                        {project.village ? `${project.village}, ` : ''}{project.district}, {project.state}
                       </div>
                       <div className="flex items-center gap-1">
                         <Building2 className="w-4 h-4" />

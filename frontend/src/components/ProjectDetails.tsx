@@ -114,7 +114,7 @@ export function ProjectDetails() {
                   <MapPin className="w-4 h-4 text-gray-400 mt-1" />
                   <div>
                     <p className="text-gray-500 text-sm">Location</p>
-                    <p className="text-gray-900 font-medium">{project.district}, {project.state}</p>
+                    <p className="text-gray-900 font-medium">{project.village ? `${project.village}, ` : ''}{project.district}, {project.state}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -204,7 +204,7 @@ export function ProjectDetails() {
                 <div>
                   <h3 className="text-gray-900 mb-3 font-semibold">Project Description</h3>
                   <p className="text-gray-600">
-                    Comprehensive development project aimed at transforming {project.district} into a model district
+                    Comprehensive development project aimed at transforming {project.village ? `${project.village}, ` : ''}{project.district} into a model district
                     through infrastructure development, sanitation facilities, water supply systems, and community amenities.
                   </p>
                 </div>
