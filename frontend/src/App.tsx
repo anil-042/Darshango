@@ -10,6 +10,7 @@ import NotFound from './pages/NotFound';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { HomeDashboard } from './components/HomeDashboard';
+import { Mapping } from './components/Mapping';
 import { AgencyMapping } from './components/AgencyMapping';
 import { ProjectManagement } from './components/ProjectManagement';
 import { ProjectDetails } from './components/ProjectDetails';
@@ -62,6 +63,12 @@ export default function App() {
           <Route path="/" element={
             <ProtectedRoute>
               <Layout><HomeDashboard /></Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/mapping" element={
+            <ProtectedRoute>
+              <Layout><Mapping /></Layout>
             </ProtectedRoute>
           } />
 

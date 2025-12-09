@@ -57,7 +57,6 @@ export function TopBar() {
       const data = await api.notifications.getAll();
 
       setNotifications((prev) => {
-        // Only increment unread count if we have more notifications than before
         if (data.length > prev.length) {
           const diff = data.length - prev.length;
           setUnreadCount(c => c + diff);
@@ -99,7 +98,8 @@ export function TopBar() {
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between sticky top-0 z-10">
-      <div className="flex items-center gap-2 text-gray-500 text-sm">
+      {/* ✅ ONLY CHANGE IS HERE: text-lg → text-4xl */}
+      <div className="flex items-center gap-2 text-gray-500 text-4xl">
         {breadcrumbs.map((crumb, index) => (
           <span key={index} className="flex items-center gap-2">
             {index > 0 && <span>/</span>}
@@ -120,10 +120,9 @@ export function TopBar() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 200)} // Delay to allow click on dropdown
+            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           />
 
-          {/* Search Results Dropdown */}
           {isFocused && searchQuery.length > 1 && (
             <div className="absolute top-10 left-0 w-80 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
               {isSearching ? (
@@ -163,7 +162,6 @@ export function TopBar() {
                           key={agency.id}
                           className="px-4 py-2 hover:bg-gray-50 cursor-pointer"
                           onClick={() => {
-                            // Navigate to Agency Mapping with search param to simulate filtering
                             navigate(`/agency-mapping?search=${encodeURIComponent(agency.name)}`);
                             setSearchQuery('');
                           }}
@@ -218,6 +216,7 @@ export function TopBar() {
                 </div>
               )}
             </ScrollArea>
+
             <div className="p-3 border-t border-gray-100 text-center">
               <Button
                 variant="ghost"

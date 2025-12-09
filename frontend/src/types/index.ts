@@ -59,6 +59,7 @@ export interface Transaction {
     state?: string;
     district?: string;
     agencyId?: string;
+    component?: string;
 }
 
 export interface Inspection {

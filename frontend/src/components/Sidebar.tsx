@@ -29,6 +29,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   const allMenuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/', module: 'Dashboard' },
+    { icon: Map, label: 'Mapping', path: '/mapping', module: 'Mapping' },
     { icon: Map, label: 'Agencies', path: '/agency-mapping', module: 'Agencies' },
     { icon: FolderKanban, label: 'Projects', path: '/projects', module: 'Projects' },
     { icon: IndianRupee, label: 'Fund Flow', path: '/fund-flow', module: 'Fund Flow' },
@@ -36,7 +37,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
     { icon: MessageSquare, label: 'Communication', path: '/communication', module: 'Communication' },
     { icon: Flag, label: 'Grievances', path: '/grievances', module: 'Grievances' },
     { icon: AlertTriangle, label: 'Alerts', path: '/alerts', module: 'Alerts' },
-    { icon: BarChart3, label: 'Reports', path: '/reports', module: 'Reports' },
     { icon: Settings, label: 'Admin Settings', path: '/admin', module: 'Admin' },
   ];
 

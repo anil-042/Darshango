@@ -19,6 +19,7 @@ export const createFundTransaction = async (projectId: string | undefined, fundD
         state: fundData.state || null,
         district: fundData.district || null,
         agency_id: fundData.agencyId || null,
+        component: fundData.component || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
     };
@@ -77,6 +78,7 @@ export const updateFundTransaction = async (projectId: string | undefined, fundI
     if (updateData.state) dbUpdate.state = updateData.state;
     if (updateData.district) dbUpdate.district = updateData.district;
     if (updateData.agencyId) dbUpdate.agency_id = updateData.agencyId;
+    if (updateData.component) dbUpdate.component = updateData.component;
 
     const { data, error } = await supabase
         .from('funds')
@@ -125,6 +127,7 @@ const mapFund = (f: any) => ({
     state: f.state,
     district: f.district,
     agencyId: f.agency_id,
+    component: f.component,
     createdAt: f.created_at,
     updatedAt: f.updated_at
 });

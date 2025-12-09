@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use localhost for local development
-const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.60.173:5001/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || ' http://192.168.60.173:5001/api/v1';
 // const API_URL = 'http://10.20.19.241:5001/api/v1'; // Network access (if needed)
 
 const axiosInstance = axios.create({

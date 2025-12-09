@@ -54,7 +54,7 @@ import { locationData } from '../data/locations';
 
 // Constants
 const STATES = Object.keys(locationData);
-
+const AVAILABLE_COMPONENTS = ["Adarsh Gram", "GIA", "Hostel"];
 
 export function FundFlow() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -66,12 +66,15 @@ export function FundFlow() {
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [filterComponent, setFilterComponent] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
   // Overview State Selection
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [selectedAgency, setSelectedAgency] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [overviewComponent, setOverviewComponent] = useState<string>('all');
 
   // CRUD States
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -90,7 +93,8 @@ export function FundFlow() {
     amount: 0,
     utrNumber: '',
     date: new Date().toISOString().split('T')[0],
-    description: ''
+    description: '',
+    component: ''
   });
 
   useEffect(() => {
@@ -189,6 +193,7 @@ export function FundFlow() {
       district: '',
       agencyId: '',
       projectId: '',
+      component: '',
       amount: 0
     });
   };
@@ -250,7 +255,8 @@ export function FundFlow() {
         createdBy: user?.id,
         state: formData.state,
         district: formData.district,
-        agencyId: formData.agencyId
+        agencyId: formData.agencyId,
+        component: formData.component
       };
 
       console.log('Creating transaction with data:', newTxn);
@@ -270,7 +276,8 @@ export function FundFlow() {
         amount: 0,
         utrNumber: '',
         date: new Date().toISOString().split('T')[0],
-        description: ''
+        description: '',
+        component: ''
       });
       setSelectedFile(null);
       toast.success('Transaction recorded successfully');
@@ -296,48 +303,58 @@ export function FundFlow() {
       txn.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (txn.utrNumber && txn.utrNumber.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = filterType === 'all' || txn.type === filterType;
-    return matchesSearch && matchesType;
+    const matchesComponent = filterComponent === 'all' || txn.component === filterComponent;
+    return matchesSearch && matchesType && matchesComponent;
   });
 
   const clearFilters = () => {
     setSearchQuery('');
     setFilterType('all');
+    setFilterComponent('all');
   };
 
-  const hasActiveFilters = searchQuery !== '' || filterType !== 'all';
+  const hasActiveFilters = searchQuery !== '' || filterType !== 'all' || filterComponent !== 'all';
 
   // Calculate state-specific funds
   const getStateFunds = (state: string | null) => {
+    let txns = transactions.filter(t => t.status !== 'Failed');
+    if (overviewComponent !== 'all') {
+      txns = txns.filter(t => t.component === overviewComponent);
+    }
+
     if (!state) {
       // Return total for all states
-      return transactions
-        .filter(t => t.type === 'State Transfer' && t.status !== 'Failed')
+      return txns
+        .filter(t => t.type === 'State Transfer')
         .reduce((sum, t) => sum + t.amount, 0);
     }
     // Return funds for specific state
-    return transactions
+    return txns
       .filter(t =>
         (t.type === 'Ministry Allocation' || t.type === 'State Transfer') &&
-        t.state === state &&
-        t.status !== 'Failed'
+        t.state === state
       )
       .reduce((sum, t) => sum + t.amount, 0);
   };
 
   // Calculate district-specific funds
   const getDistrictFunds = (district: string | null) => {
+    let txns = transactions.filter(t => t.status !== 'Failed');
+    if (overviewComponent !== 'all') {
+      txns = txns.filter(t => t.component === overviewComponent);
+    }
+
     if (!district) {
       // Return total for all districts
-      return transactions
-        .filter(t => t.type === 'State Transfer' && t.status !== 'Failed')
+      return txns
+        .filter(t => t.type === 'State Transfer')
         .reduce((sum, t) => sum + t.amount, 0);
     }
     // Return funds for specific district
-    return transactions
+    return txns
       .filter(t =>
         t.type === 'State Transfer' &&
-        t.district === district &&
-        t.status !== 'Failed'
+        t.district === district
       )
       .reduce((sum, t) => sum + t.amount, 0);
   };
@@ -352,19 +369,38 @@ export function FundFlow() {
 
   // Calculate agency-specific funds
   const getAgencyFunds = (agencyId: string | null) => {
+    let txns = transactions.filter(t => t.status !== 'Failed');
+    if (overviewComponent !== 'all') {
+      txns = txns.filter(t => t.component === overviewComponent);
+    }
+
     if (!agencyId) {
       // Return total for all agencies
-      return transactions
-        .filter(t => t.type === 'Agency Release' && t.status !== 'Failed')
+      return txns
+        .filter(t => t.type === 'Agency Release')
         .reduce((sum, t) => sum + t.amount, 0);
     }
     // Return funds for specific agency
-    return transactions
+    return txns
       .filter(t =>
         t.type === 'Agency Release' &&
-        t.agencyId === agencyId &&
-        t.status !== 'Failed'
+        t.agencyId === agencyId
       )
+      .reduce((sum, t) => sum + t.amount, 0);
+  };
+
+  // Calculate project-specific utilization
+  const getProjectUtilization = (projectId: string | null) => {
+    let txns = transactions.filter(t => t.status !== 'Failed' && t.type === 'Utilization');
+    if (overviewComponent !== 'all') {
+      txns = txns.filter(t => t.component === overviewComponent);
+    }
+
+    if (!projectId) {
+      return txns.reduce((sum, t) => sum + t.amount, 0);
+    }
+    return txns
+      .filter(t => t.projectId === projectId)
       .reduce((sum, t) => sum + t.amount, 0);
   };
 
@@ -508,6 +544,24 @@ export function FundFlow() {
                   </div>
                 )}
 
+                {/* Component Selection */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Component</label>
+                  <Select
+                    value={formData.component}
+                    onValueChange={(val) => setFormData({ ...formData, component: val })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Component" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_COMPONENTS.map(c => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Amount with Slider */}
                 <div className="space-y-4 p-4 bg-gray-100 rounded-lg border">
                   <div className="flex justify-between items-center">
@@ -517,19 +571,12 @@ export function FundFlow() {
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Slider
-                      value={[formData.amount]}
-                      max={maxAmount || 100000000}
-                      step={10000}
-                      onValueChange={(val) => setFormData({ ...formData, amount: val[0] })}
-                      className="flex-1"
-                      rangeClassName="bg-blue-400"
-                    />
                     <Input
                       type="number"
-                      value={formData.amount}
+                      value={formData.amount || ''}
                       onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                      className="w-32 text-right"
+                      className="w-full text-lg font-medium"
+                      placeholder="Enter amount"
                     />
                   </div>
                 </div>
@@ -586,21 +633,34 @@ export function FundFlow() {
 
       {/* Overview Cards */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Fund Flow Overview</CardTitle>
+          <div className="w-[200px]">
+            <Select value={overviewComponent} onValueChange={setOverviewComponent}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Component" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Components</SelectItem>
+                {AVAILABLE_COMPONENTS.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="p-6 bg-gradient-to-r from-blue-50 via-purple-50 to-green-50 rounded-lg">
             <div className="flex items-center justify-between gap-4 overflow-x-auto">
               <div className="flex-1 min-w-[120px] space-y-2">
                 <div className="p-4 bg-white rounded-lg shadow-sm text-center">
-                  <p className="text-gray-600 mb-2 text-sm">Ministry</p>
+                  <p className="text-gray-600 mb-2 text-sm">Ministry(MoSJE, Central)</p>
                   <p className="text-gray-900 font-bold">
                     {formatCurrency(transactions
-                      .filter(t => t.type === 'Ministry Allocation' && t.status !== 'Failed')
+                      .filter(t => t.type === 'Ministry Allocation' && t.status !== 'Failed' && (overviewComponent === 'all' || t.component === overviewComponent))
                       .reduce((sum, t) => sum + t.amount, 0))}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Total Allocated</p>
+                  <p className="text-xs text-gray-500 mt-1">Allocated</p>
                 </div>
               </div>
               <ArrowUpRight className="w-6 h-6 text-gray-400" />
@@ -693,16 +753,88 @@ export function FundFlow() {
               <ArrowDownLeft className="w-6 h-6 text-gray-400" />
               <div className="flex-1 min-w-[120px] space-y-2">
                 <div className="p-4 bg-white rounded-lg shadow-sm text-center">
-                  <p className="text-gray-600 mb-2 text-sm">Ground</p>
+                  <div className="mb-2">
+                    <Select
+                      value={selectedProject || 'all'}
+                      onValueChange={(val) => setSelectedProject(val === 'all' ? null : val)}
+                      disabled={false} // Always enabled for global view or filtered
+                    >
+                      <SelectTrigger className="w-full border-none shadow-none hover:bg-gray-50">
+                        <SelectValue>
+                          <span className="text-gray-600 text-sm">
+                            {selectedProject ? projects.find(p => p.id === selectedProject)?.title || 'Project' : 'Project'}
+                          </span>
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="max-h-80" style={{ maxHeight: '320px' }}>
+                        <SelectItem value="all">All Projects</SelectItem>
+                        {projects
+                          .filter(p => !selectedAgency || p.implementingAgencyId === selectedAgency) // Optional: filter by agency if selected
+                          .map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.title}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <p className="text-gray-900 font-bold">
-                    {formatCurrency(transactions
-                      .filter(t => t.type === 'Utilization' && t.status !== 'Failed')
-                      .reduce((sum, t) => sum + t.amount, 0))}
+                    {formatCurrency(getProjectUtilization(selectedProject))}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Utilized</p>
                 </div>
               </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Component Analysis */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Component Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {AVAILABLE_COMPONENTS.map(component => {
+              const allocated = transactions
+                .filter(t => t.component === component && t.status !== 'Failed')
+                .reduce((sum, t) => sum + (t.type === 'Ministry Allocation' || t.fromLevel === 'Ministry' ? t.amount : 0), 0); // Simplified allocation logic
+
+              const utilized = transactions
+                .filter(t => t.component === component && t.type === 'Utilization' && t.status !== 'Failed')
+                .reduce((sum, t) => sum + t.amount, 0);
+
+              const utilizationPercentage = allocated > 0 ? Math.round((utilized / allocated) * 100) : 0;
+
+              return (
+                <div key={component} className="p-4 bg-white border rounded-lg shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-gray-900">{component}</h3>
+                    <Badge variant="secondary" className={
+                      utilizationPercentage > 75 ? "bg-green-100 text-green-700" :
+                        utilizationPercentage > 40 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                    }>{utilizationPercentage}% Utilized</Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Allocated</span>
+                      <span className="font-medium">{formatCurrency(allocated)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Utilized</span>
+                      <span className="font-medium">{formatCurrency(utilized)}</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2 mt-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(utilizationPercentage, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -737,6 +869,19 @@ export function FundFlow() {
                   <SelectItem value="Utilization">Utilization</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Select value={filterComponent} onValueChange={setFilterComponent}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Component" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Components</SelectItem>
+                  {AVAILABLE_COMPONENTS.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               {hasActiveFilters && (
                 <Button
                   variant="outline"
@@ -756,6 +901,7 @@ export function FundFlow() {
                 <TableRow className="bg-gray-50">
                   <TableHead>Date</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Component</TableHead>
                   <TableHead>Flow</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>UTR</TableHead>
@@ -767,17 +913,18 @@ export function FundFlow() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">Loading...</TableCell>
+                    <TableCell colSpan={9} className="text-center py-8">Loading...</TableCell>
                   </TableRow>
                 ) : filteredTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">No transactions found</TableCell>
+                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">No transactions found</TableCell>
                   </TableRow>
                 ) : (
                   filteredTransactions.map((txn) => (
                     <TableRow key={txn.id}>
                       <TableCell>{txn.date?.split('T')[0]}</TableCell>
                       <TableCell><Badge variant="outline">{txn.type}</Badge></TableCell>
+                      <TableCell><Badge variant="secondary" className="bg-blue-50 text-blue-700">{txn.component || '-'}</Badge></TableCell>
                       <TableCell className="text-gray-600">{txn.fromLevel} → {txn.toLevel}</TableCell>
                       <TableCell className="font-medium">{formatCurrency(txn.amount)}</TableCell>
                       <TableCell className="font-mono text-xs">{txn.utrNumber || '-'}</TableCell>
